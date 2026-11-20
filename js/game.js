@@ -148,6 +148,19 @@
     const walkMarkers = [];
     const dustParticles = [];
 
+    // State Efek Teleportasi (Tombol Reset)
+    const teleportState = {
+      active: false,
+      phase: 'idle', // 'idle' | 'out' | 'travel' | 'in'
+      timer: 0,
+      originX: 0,
+      targetX: WORLD_CONFIG.spawnX,
+      outDuration: 0.42,
+      travelDuration: 0.35,
+      inDuration: 0.45,
+    };
+    const teleportParticles = [];
+
     // Data dekorasi lingkungan deterministik (awan, bintang, gedung latar, pohon, lampu)
     const clouds = [
       { x: 40, y: 26, w: 36, speed: 4.5 },
@@ -390,6 +403,23 @@
       // Garis horizontal pembagi jalur
       px(0, roadTop + 16, W, 1, tileLineColor);
       px(0, roadTop + 34, W, 1, tileLineColor);
+
+      // Garis Start / Teleport Pad di WORLD_CONFIG.spawnX (130)
+      const startPadSx = Math.floor(WORLD_CONFIG.spawnX - camera.x);
+      if (startPadSx > -40 && startPadSx < W + 40) {
+        px(startPadSx - 16, roadTop + 6, 32, 22, isNightMode ? '#0f172a' : '#cbd5e1');
+        px(startPadSx - 14, roadTop + 8, 28, 18, isNightMode ? '#0369a1' : '#bae6fd');
+        px(startPadSx - 12, roadTop + 10, 24, 14, isNightMode ? '#0284c7' : '#e0f2fe');
+        // Pola papan catur / checkerboard start line
+        for (let bx = 0; bx < 24; bx += 4) {
+          px(startPadSx - 12 + bx, roadTop + 10, 2, 2, (bx / 4) % 2 === 0 ? '#0f172a' : '#ffffff');
+          px(startPadSx - 12 + bx, roadTop + 22, 2, 2, (bx / 4) % 2 === 1 ? '#0f172a' : '#ffffff');
+        }
+        ctx.fillStyle = isNightMode ? '#7dd3fc' : '#0369a1';
+        ctx.font = 'bold 6px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('◄ START', startPadSx, roadTop + 19);
+      }
 
       // Jalur Kabel Fiber Optik di Tengah Trotoar
       const fiberY = viewport.groundY + 12;
@@ -743,8 +773,36 @@
      * =========================================================================
      */
     function drawPlayerAvatar() {
+      // Jika dalam fase travel teleport, karakter tidak digambar (sedang meluncur)
+      if (teleportState.active && teleportState.phase === 'travel') {
+        return;
+      }
+
       const sx = Math.floor(player.x - camera.x);
       const baseY = viewport.groundY + 6;
+
+      ctx.save();
+      // Efek distorsi/stretch teleportasi jika sedang out atau in
+      if (teleportState.active) {
+        let scaleX = 1;
+        let scaleY = 1;
+        let alpha = 1;
+        if (teleportState.phase === 'out') {
+          const p = Math.min(1, teleportState.timer / teleportState.outDuration);
+          scaleX = 1 - p * 0.85; // 1 -> 0.15
+          scaleY = 1 + p * 0.75; // 1 -> 1.75
+          alpha = Math.max(0, 1 - p * 1.15);
+        } else if (teleportState.phase === 'in') {
+          const p = Math.min(1, teleportState.timer / teleportState.inDuration);
+          scaleX = 0.15 + p * 0.85; // 0.15 -> 1
+          scaleY = 1.75 - p * 0.75; // 1.75 -> 1
+          alpha = Math.min(1, p * 1.3);
+        }
+        ctx.globalAlpha = alpha;
+        ctx.translate(sx, baseY);
+        ctx.scale(scaleX, scaleY);
+        ctx.translate(-sx, -baseY);
+      }
 
       // Bayangan kontak di tanah
       px(sx - 7, baseY - 1, 14, 4, 'rgba(15, 23, 42, 0.32)');
@@ -821,6 +879,8 @@
         ctx.textAlign = 'center';
         ctx.fillText('HAI!', sx + 17, bY + 8);
       }
+
+      ctx.restore();
     }
 
     /**
@@ -847,6 +907,73 @@
           : `rgba(255, 255, 255, ${alpha * 0.8})`;
         ctx.fillRect(sx, Math.floor(p.y), p.size, p.size);
       });
+    }
+
+    /**
+     * Efek Sinar Beam, Ground Ring & Partikel Cahaya Teleportasi Retro
+     */
+    function drawTeleportEffects() {
+      // 1. Partikel Teleportasi
+      teleportParticles.forEach((p) => {
+        const psx = Math.floor(p.x - camera.x);
+        const alpha = Math.max(0, 1 - p.age / p.maxAge);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(psx, Math.floor(p.y), p.size, p.size);
+        ctx.restore();
+      });
+
+      // 2. Berkas Sinar Beam Vertikal & Ground Ring saat Teleport Active
+      if (teleportState.active && (teleportState.phase === 'out' || teleportState.phase === 'in')) {
+        const isOut = teleportState.phase === 'out';
+        const progress = isOut
+          ? Math.min(1, teleportState.timer / teleportState.outDuration)
+          : Math.min(1, teleportState.timer / teleportState.inDuration);
+        const targetWorldX = isOut ? teleportState.originX : player.x;
+        const sx = Math.floor(targetWorldX - camera.x);
+        const baseY = viewport.groundY + 6;
+
+        const beamIntensity = isOut
+          ? (progress < 0.65 ? progress / 0.65 : 1 - (progress - 0.65) / 0.35)
+          : (progress < 0.35 ? progress / 0.35 : 1 - (progress - 0.35) / 0.65);
+
+        ctx.save();
+        // Cincin lantai bercahaya (ground ring)
+        const ringWidth = Math.floor(18 + beamIntensity * 12);
+        const ringAlpha = Math.max(0, Math.min(1, beamIntensity * 0.85));
+        ctx.strokeStyle = `rgba(56, 189, 248, ${ringAlpha})`;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx - Math.floor(ringWidth / 2), baseY - 2, ringWidth, 4);
+
+        // Beam vertikal penuh dari langit ke tanah
+        const beamW = Math.floor(10 + beamIntensity * 8);
+        const beamH = baseY + 10;
+
+        // Outer glow
+        ctx.fillStyle = `rgba(14, 165, 233, ${beamIntensity * 0.35})`;
+        ctx.fillRect(sx - Math.floor(beamW * 0.9), 0, Math.floor(beamW * 1.8), beamH);
+
+        // Core cyan beam
+        ctx.fillStyle = `rgba(56, 189, 248, ${beamIntensity * 0.65})`;
+        ctx.fillRect(sx - Math.floor(beamW / 2), 0, beamW, beamH);
+
+        // Ultra bright white center line
+        ctx.fillStyle = `rgba(255, 255, 255, ${beamIntensity * 0.9})`;
+        ctx.fillRect(sx - 2, 0, 4, beamH);
+
+        // Shockwave ring saat fase 'in' (pendaratan)
+        if (!isOut && progress > 0.35) {
+          const waveP = (progress - 0.35) / 0.65;
+          const waveR = Math.floor(10 + waveP * 30);
+          const waveAlpha = Math.max(0, (1 - waveP) * 0.75);
+          ctx.strokeStyle = `rgba(251, 191, 36, ${waveAlpha})`;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(sx - waveR, baseY - Math.floor(waveR * 0.25), waveR * 2, Math.floor(waveR * 0.5));
+        }
+
+        ctx.restore();
+      }
     }
 
     /**
@@ -921,6 +1048,100 @@
       }
     }
 
+    function spawnTeleportParticles(worldX, mode) {
+      const count = mode === 'out' ? 24 : 20;
+      for (let i = 0; i < count; i++) {
+        teleportParticles.push({
+          x: worldX + (Math.random() - 0.5) * 20,
+          y: viewport.groundY + 4 - (mode === 'out' ? Math.random() * 26 : 18 + Math.random() * 28),
+          vx: (Math.random() - 0.5) * 24,
+          vy: mode === 'out' ? -35 - Math.random() * 55 : 25 + Math.random() * 45,
+          size: Math.random() > 0.5 ? 2 : 1,
+          color: ['#e0f2fe', '#38bdf8', '#0ea5e9', '#fbbf24'][Math.floor(Math.random() * 4)],
+          age: 0,
+          maxAge: 0.35 + Math.random() * 0.2,
+        });
+      }
+    }
+
+    function updateTeleportState(dt) {
+      // Update masa hidup seluruh partikel teleport
+      for (let i = teleportParticles.length - 1; i >= 0; i--) {
+        const p = teleportParticles[i];
+        p.age += dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.age >= p.maxAge) {
+          teleportParticles.splice(i, 1);
+        }
+      }
+
+      if (!teleportState.active) return;
+      teleportState.timer += dt;
+
+      if (teleportState.phase === 'out') {
+        // Partikel energi melesat ke atas
+        if (Math.random() < dt * 45) {
+          teleportParticles.push({
+            x: teleportState.originX + (Math.random() - 0.5) * 16,
+            y: viewport.groundY - Math.random() * 24,
+            vx: (Math.random() - 0.5) * 14,
+            vy: -40 - Math.random() * 50,
+            size: Math.random() > 0.4 ? 2 : 1,
+            color: Math.random() > 0.4 ? '#38bdf8' : '#ffffff',
+            age: 0,
+            maxAge: 0.35,
+          });
+        }
+        if (teleportState.timer >= teleportState.outDuration) {
+          teleportState.phase = 'travel';
+          teleportState.timer = 0;
+          player.x = teleportState.targetX;
+          player.facing = 1;
+          player.vx = 0;
+          player.isWalking = false;
+        }
+      } else if (teleportState.phase === 'travel') {
+        if (teleportState.timer >= teleportState.travelDuration) {
+          teleportState.phase = 'in';
+          teleportState.timer = 0;
+          spawnTeleportParticles(player.x, 'in');
+        }
+      } else if (teleportState.phase === 'in') {
+        // Partikel pendaratan menyatu
+        if (Math.random() < dt * 30) {
+          teleportParticles.push({
+            x: player.x + (Math.random() - 0.5) * 18,
+            y: viewport.groundY - 10 - Math.random() * 20,
+            vx: (Math.random() - 0.5) * 20,
+            vy: (Math.random() - 0.5) * 15,
+            size: Math.random() > 0.3 ? 2 : 1,
+            color: Math.random() > 0.5 ? '#38bdf8' : '#fbbf24',
+            age: 0,
+            maxAge: 0.3,
+          });
+        }
+        if (teleportState.timer >= teleportState.inDuration) {
+          teleportState.active = false;
+          teleportState.phase = 'idle';
+          teleportState.timer = 0;
+          // Spawn landing dust di garis start
+          for (let i = 0; i < 8; i++) {
+            dustParticles.push({
+              x: player.x,
+              y: viewport.groundY + 5,
+              vx: (Math.random() - 0.5) * 36,
+              vy: -6 - Math.random() * 10,
+              size: Math.random() > 0.5 ? 2 : 1,
+              age: 0,
+              maxAge: 0.4,
+            });
+          }
+          showToast('⚡ TIBA DI GARIS START!');
+        }
+      }
+    }
+
     /**
      * =========================================================================
      * LOGIKA UPDATE FISIKA, KAMERA & INTERAKSI
@@ -929,9 +1150,10 @@
     function updateGame(dt) {
       elapsedTime += dt;
       updateIntroState(dt);
+      updateTeleportState(dt);
 
-      // 1. Cek apakah ada dialog modal sedang terbuka atau intro masih aktif
-      const hasOpenDialog = Boolean(document.querySelector('dialog.zone-dialog[open]')) || introState.active;
+      // 1. Cek apakah ada dialog modal sedang terbuka atau intro masih aktif atau sedang teleport
+      const hasOpenDialog = Boolean(document.querySelector('dialog.zone-dialog[open]')) || introState.active || teleportState.active;
 
       // 2. Hitung arah gerakan manual (Keyboard / Tombol Kiri-Kanan Layar)
       let moveDir = 0;
@@ -993,10 +1215,12 @@
       }
 
       // 4. Kamera Side-Scrolling Halus & Transisi Zoom mengikuti Player
-      const desiredCamX = player.x - viewport.width * 0.48;
+      const camTargetPlayerX = (teleportState.active && teleportState.phase === 'travel') ? teleportState.targetX : player.x;
+      const desiredCamX = camTargetPlayerX - viewport.width * 0.48;
       const maxCamX = Math.max(0, WORLD_CONFIG.width - viewport.width);
       camera.targetX = Math.max(0, Math.min(maxCamX, desiredCamX));
-      camera.x += (camera.targetX - camera.x) * (1 - Math.exp(-8 * dt));
+      const camSmoothRate = (teleportState.active && teleportState.phase === 'travel') ? 14 : 8;
+      camera.x += (camera.targetX - camera.x) * (1 - Math.exp(-camSmoothRate * dt));
       camera.zoom += (camera.targetZoom - camera.zoom) * (1 - Math.exp(-4.2 * dt));
       if (Math.abs(camera.zoom - camera.targetZoom) < 0.004) {
         camera.zoom = camera.targetZoom;
@@ -1076,6 +1300,7 @@
       drawZoneBuildings();
       drawEffects();
       drawPlayerAvatar();
+      drawTeleportEffects();
 
       ctx.restore();
     }
@@ -1166,6 +1391,7 @@
     }
 
     function navigateToZone(zoneId, shouldOpenDialog = true) {
+      if (teleportState.active) return;
       const cfg = ZONES_CONFIG.find((z) => z.id === zoneId);
       if (!cfg) return;
 
@@ -1184,10 +1410,22 @@
     }
 
     function resetPlayerPosition() {
+      if (introState.active || teleportState.active) return;
       document.querySelectorAll('dialog.zone-dialog[open]').forEach((d) => d.close());
-      player.autoTargetX = WORLD_CONFIG.spawnX;
+      player.autoTargetX = null;
       player.pendingZoneId = null;
-      showToast('KEMBALI KE POSISI AWAL (KIRI)');
+      player.vx = 0;
+      player.isWalking = false;
+
+      teleportState.active = true;
+      teleportState.phase = 'out';
+      teleportState.timer = 0;
+      teleportState.originX = player.x;
+      teleportState.targetX = WORLD_CONFIG.spawnX;
+      teleportState.travelDuration = Math.abs(player.x - WORLD_CONFIG.spawnX) < 30 ? 0.12 : 0.35;
+
+      spawnTeleportParticles(player.x, 'out');
+      showToast('⚡ TELEPORT KE GARIS START...');
     }
 
     function toggleDayNight() {
@@ -1593,6 +1831,10 @@
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
         const key = e.key.toLowerCase();
+        if (teleportState.active) {
+          if (key === 't') toggleDayNight();
+          return;
+        }
         // Jika Intro Cutscene masih aktif, tombol Enter/Space/Escape/D/Panah Kanan menyelesaikan sapaan
         if (introState.active) {
           if (key === 'enter' || key === ' ' || key === 'escape') {
@@ -1694,6 +1936,7 @@
       });
 
       canvas.addEventListener('pointerdown', (e) => {
+        if (teleportState.active) return;
         if (e.button !== 0 && e.pointerType === 'mouse') return;
         if (introState.active) {
           advanceIntroGreeting();
@@ -1717,8 +1960,8 @@
       window.addEventListener(
         'wheel',
         (e) => {
-          // Jangan ganggu scroll native jika ada dialog modal sedang terbuka
-          if (document.querySelector('dialog.zone-dialog[open]')) return;
+          // Jangan ganggu scroll native jika ada dialog modal terbuka atau sedang teleportasi
+          if (document.querySelector('dialog.zone-dialog[open]') || teleportState.active) return;
           if (introState.active) {
             e.preventDefault();
             finishIntroGreeting();

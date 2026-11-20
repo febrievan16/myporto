@@ -4,7 +4,7 @@
         "name": "Achmad Febri Efanudin S.Pd",
         "ageLabel": "31 TAHUN",
         "hudSubtitle": "IT Programmer & Network Eng · RSI Siti Hajar Sidoarjo",
-        "role": "IT Programmer & Network Engineer",
+        "role": "IT Programmer & Network Engineer at RSI Siti Hajar Sidoarjo",
         "company": "RSI Siti Hajar",
         "bio": "Bertugas di RSI Siti Hajar selama 5 Tahun — berfokus pada pengembangan sistem informasi layanan kesehatan, integrasi aplikasi, serta keandalan infrastruktur jaringan & server rumah sakit.",
         "highlights": [
@@ -36,6 +36,16 @@
                 "id": "sk-4",
                 "title": "Database Optimization",
                 "description": "Tuning query MySQL/MariaDB & PostgreSQL, indexing transaksi klinis bervolume tinggi, serta replikasi data real-time."
+            },
+            {
+                "id": "sk-mwpl0n8f-t51v",
+                "title": "Laravel",
+                "description": "Projet laravel web app"
+            },
+            {
+                "id": "sk-mwpl1wo6-3hc8",
+                "title": "Ui/Ux",
+                "description": "Berfokus ke UI/Ux dan front end dev terkait react dan tailwind CSS"
             }
         ]
     },
