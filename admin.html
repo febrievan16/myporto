@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Admin CMS — Portofolio 2D Isometric Pixel Achmad Febri</title>
+
+  <!-- Google Fonts: Press Start 2P, VT323, Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            pixel: ['"Press Start 2P"', 'monospace'],
+            vt: ['"VT323"', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #0f172a;
+      background-image:
+        linear-gradient(rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .pixel-panel {
+      background: #f8fafc;
+      border: 4px solid #0f172a;
+      box-shadow:
+        inset -4px -4px 0 0 #cbd5e1,
+        inset 4px 4px 0 0 #ffffff,
+        8px 8px 0 0 rgba(2, 6, 23, 0.65);
+    }
+
+    .pixel-card {
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      box-shadow: 3px 3px 0 0 #cbd5e1;
+    }
+
+    .pixel-tag {
+      border: 2px solid #0f172a;
+    }
+
+    .pixel-btn {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 3px solid #0f172a;
+      box-shadow:
+        inset -3px -3px 0 0 #cbd5e1,
+        inset 3px 3px 0 0 #ffffff,
+        3px 3px 0 0 rgba(15, 23, 42, 0.5);
+      transition: transform 0.06s steps(2), background-color 0.1s;
+    }
+    .pixel-btn:hover { background: #e0f2fe; }
+    .pixel-btn:active { transform: translate(2px, 2px); }
+
+    .pixel-btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow:
+        inset -3px -3px 0 0 #0369a1,
+        inset 3px 3px 0 0 #38bdf8,
+        3px 3px 0 0 rgba(15, 23, 42, 0.55);
+      transition: transform 0.06s steps(2);
+    }
+    .pixel-btn-primary:hover { filter: brightness(1.08); }
+    .pixel-btn-primary:active { transform: translate(2px, 2px); }
+  </style>
+</head>
+<body class="min-h-screen p-3 sm:p-6 text-slate-900">
+
+  <div class="mx-auto max-w-5xl space-y-5">
+    <!-- Header Dashboard Admin -->
+    <header class="pixel-panel flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-slate-900 bg-sky-600 font-pixel text-xs text-white shadow-[inset_-2px_-2px_0_#0369a1,inset_2px_2px_0_#38bdf8]">
+          CMS
+        </div>
+        <div>
+          <h1 class="font-pixel text-xs text-slate-900 sm:text-sm">PANEL ADMIN PORTOFOLIO</h1>
+          <p class="mt-1 font-vt text-lg leading-none text-slate-600">
+            Kelola Profil, Keahlian, Contoh Project, Galeri Portofolio &amp; Inbox Pesan
+          </p>
+        </div>
+      </div>
+
+      <a
+        href="portofolio_3d_isometric_achmad_febri.html"
+        class="pixel-btn inline-flex items-center gap-2 px-3.5 py-2 font-pixel text-[9px] text-slate-900 no-underline"
+      >
+        <span>◄</span>
+        <span>LIHAT WEB PORTOFOLIO</span>
+      </a>
+    </header>
+
+    <!-- Kontainer Mount Admin CMS -->
+    <main class="pixel-panel p-5">
+      <div id="admin-standalone-mount">
+        <p class="py-8 text-center font-pixel text-[10px] text-slate-500">MEMUAT PANEL ADMIN...</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notifikasi -->
+  <div
+    id="admin-toast"
+    role="status"
+    aria-live="polite"
+    class="pointer-events-none fixed bottom-5 right-5 z-50 border-3 border-slate-950 bg-slate-900 px-4 py-2.5 font-pixel text-[9px] text-amber-300 opacity-0 shadow-[4px_4px_0_#020617] transition-opacity duration-200"
+  ></div>
+
+  <script src="js/cms-core.js?v=2"></script>
+  <script>
+    'use strict';
+
+    let toastTimer = null;
+    function showAdminToast(msg) {
+      const el = document.getElementById('admin-toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('opacity-0');
+      el.classList.add('opacity-100');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove('opacity-100');
+        el.classList.add('opacity-0');
+      }, 2400);
+    }
+
+    window.addEventListener('load', () => {
+      const mountEl = document.getElementById('admin-standalone-mount');
+      if (window.FebCMS && mountEl) {
+        window.FebCMS.mountAdminPanel(mountEl, {
+          onToast: showAdminToast,
+        });
+      }
+    });
+  </script>
+</body>
+</html>

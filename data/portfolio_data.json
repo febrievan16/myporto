@@ -1,0 +1,203 @@
+{
+    "profile": {
+        "initials": "FE",
+        "name": "Achmad Febri Efanudin S.Pd",
+        "ageLabel": "31 TAHUN",
+        "hudSubtitle": "IT Programmer & Network Eng · RSI Siti Hajar Sidoarjo",
+        "role": "IT Programmer & Network Engineer",
+        "company": "RSI Siti Hajar",
+        "bio": "Bertugas di RSI Siti Hajar selama 5 Tahun — berfokus pada pengembangan sistem informasi layanan kesehatan, integrasi aplikasi, serta keandalan infrastruktur jaringan & server rumah sakit.",
+        "highlights": [
+            {
+                "label": "Instansi",
+                "value": "RSI Siti Hajar"
+            },
+            {
+                "label": "Peran Ganda",
+                "value": "Programmer & NetEng"
+            },
+            {
+                "label": "Fokus Utama",
+                "value": "High Availability IT"
+            }
+        ],
+        "skills": [
+            {
+                "id": "sk-1",
+                "title": "Web Development",
+                "description": "Pengembangan aplikasi web modern (PHP/Laravel, JavaScript/ES2022+, REST API, Integrasi SIMRS & Bridging layanan kesehatan)."
+            },
+            {
+                "id": "sk-2",
+                "title": "Network Infrastructure",
+                "description": "Perancangan topologi VLAN, Routing & Switching (MikroTik/Cisco), Wi-Fi Enterprise, VPN Site-to-Site, dan manajemen bandwidth."
+            },
+            {
+                "id": "sk-4",
+                "title": "Database Optimization",
+                "description": "Tuning query MySQL/MariaDB & PostgreSQL, indexing transaksi klinis bervolume tinggi, serta replikasi data real-time."
+            }
+        ]
+    },
+    "projects": [
+        {
+            "id": "prj-1",
+            "badge": "SISTEM INFORMASI RS",
+            "badgeColor": "emerald",
+            "meta": "API · Backend · Database",
+            "title": "Integrasi Aplikasi Layanan & SIMRS",
+            "description": "Membangun jembatan integrasi (bridging service) antara SIMRS internal RSI Siti Hajar dengan sistem antrean poliklinik, pendaftaran online pasien, serta pertukaran data layanan eksternal secara aman dan terukur.",
+            "tags": [
+                "REST API",
+                "Laravel / PHP",
+                "MySQL Indexing",
+                "Queue Worker"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "prj-2",
+            "badge": "INFRASTRUKTUR JARINGAN",
+            "badgeColor": "sky",
+            "meta": "VLAN · Redundansi · Security",
+            "title": "Arsitektur Jaringan VLAN & Redundansi Server RSI",
+            "description": "Merancang ulang segmentasi jaringan rumah sakit menjadi VLAN terisolasi (Medis/IGD, Server Core, Administrasi, dan Wi-Fi Publik) disertai dual-ISP failover dan replikasi server untuk meminimalkan downtime operasional 24/7.",
+            "tags": [
+                "MikroTik Core",
+                "VLAN 802.1Q",
+                "Proxmox HA",
+                "Failover Dual ISP"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "prj-3",
+            "badge": "OBSERVABILITY & OPS",
+            "badgeColor": "indigo",
+            "meta": "Monitoring · Alerting",
+            "title": "Sistem Monitoring Jaringan & Server Real-time",
+            "description": "Dashboard pemantauan kesehatan switch, access point, trafik bandwidth, serta beban CPU/RAM server secara real-time lengkap dengan notifikasi otomatis ke tim IT saat terjadi anomali atau link putus.",
+            "tags": [
+                "SNMP Telemetry",
+                "Grafana / Prometheus",
+                "Bot Alerting"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        }
+    ],
+    "portfolios": [
+        {
+            "id": "ptf-mwphbr4e-n9a5",
+            "title": "Web site pabrik gula candi",
+            "category": "web",
+            "categoryLabel": "Web Dev",
+            "description": "membuat web layanan pesan tiket untuk event di acara pabrik gula candi",
+            "tags": [
+                "Laravel",
+                "Midtrans",
+                "Tailwind CSS"
+            ],
+            "imageUrl": "",
+            "linkUrl": "https://github.com/febrievan16/PGcandibaruWEB"
+        },
+        {
+            "id": "ptf-1",
+            "title": "Portal Antrean & Check-in Poliklinik",
+            "category": "web",
+            "categoryLabel": "Web Dev",
+            "description": "Aplikasi web responsif untuk display antrean ruang tunggu dan integrasi registrasi pasien secara real-time.",
+            "tags": [
+                "Laravel",
+                "WebSocket",
+                "Tailwind CSS"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "ptf-2",
+            "title": "Dashboard Rekapitulasi Layanan Medis",
+            "category": "web",
+            "categoryLabel": "Web Dev",
+            "description": "Panel analitik manajemen untuk memantau kunjungan harian, utilisasi ruang rawat inap, dan laporan eksekutif.",
+            "tags": [
+                "JavaScript ES2022",
+                "REST API",
+                "MySQL"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "ptf-3",
+            "title": "Segmentasi Core VLAN & Firewall RS",
+            "category": "network",
+            "categoryLabel": "Network & Infra",
+            "description": "Implementasi pemisahan trafik klinis, IP-PBX, CCTV, dan jaringan tamu guna menjaga stabilitas serta keamanan data.",
+            "tags": [
+                "MikroTik",
+                "VLAN 802.1Q",
+                "Firewall"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "ptf-4",
+            "title": "Cluster Virtualisasi & Backup Otomatis",
+            "category": "network",
+            "categoryLabel": "Network & Infra",
+            "description": "Konsolidasi server aplikasi dan database pada Proxmox VE dengan jadwal snapshot terenkripsi lintas storage.",
+            "tags": [
+                "Proxmox VE",
+                "Linux",
+                "Disaster Recovery"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "ptf-5",
+            "title": "Sistem Tiketing Helpdesk IT Internal",
+            "category": "web",
+            "categoryLabel": "Web Dev",
+            "description": "Aplikasi pelaporan kendala perangkat & jaringan antar unit rumah sakit lengkap dengan SLA tracking.",
+            "tags": [
+                "PHP",
+                "PostgreSQL",
+                "PWA"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        },
+        {
+            "id": "ptf-6",
+            "title": "NMS Monitoring Link & Uptime 24/7",
+            "category": "network",
+            "categoryLabel": "Network & Infra",
+            "description": "Pemantauan latensi, suhu server, dan status port switch di seluruh gedung dengan notifikasi instan.",
+            "tags": [
+                "SNMP",
+                "Grafana",
+                "Alerting"
+            ],
+            "imageUrl": "",
+            "linkUrl": ""
+        }
+    ],
+    "contact": {
+        "location": "RSI Siti Hajar, Sidoarjo",
+        "email": "febrievan16@gmail.com",
+        "instagram": "https://www.instagram.com/achev0ff/",
+        "linkedin": "https://linkedin.com/in/achmadfebri",
+        "github": "https://github.com/febrievan16",
+        "topics": [
+            "Pengembangan Web / Aplikasi",
+            "Konsultasi Jaringan & Server",
+            "Kolaborasi Proyek IT"
+        ]
+    }
+}

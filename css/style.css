@@ -1,0 +1,243 @@
+:root {
+      --px-border: #0f172a;
+      --px-surface: #f8fafc;
+      --px-surface-alt: #e2e8f0;
+      --px-highlight: #ffffff;
+      --px-shadow: #94a3b8;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #0f172a;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* Kanvas 2D Pixel Art Crisp */
+    #game-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: #1e293b;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* Gaya Retro 16-Bit Pixel RPG Window & Buttons */
+    .pixel-panel {
+      background: var(--px-surface);
+      border: 3px solid var(--px-border);
+      box-shadow:
+        inset -3px -3px 0 0 var(--px-shadow),
+        inset 3px 3px 0 0 var(--px-highlight),
+        4px 4px 0 0 rgba(15, 23, 42, 0.45);
+      border-radius: 0;
+    }
+
+    .pixel-panel-dark {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 3px solid #020617;
+      box-shadow:
+        inset -3px -3px 0 0 #0f172a,
+        inset 3px 3px 0 0 #334155,
+        4px 4px 0 0 rgba(2, 6, 23, 0.55);
+      border-radius: 0;
+    }
+
+    .pixel-btn {
+      background: #f8fafc;
+      color: #0f172a;
+      border: 3px solid #0f172a;
+      box-shadow:
+        inset -3px -3px 0 0 #cbd5e1,
+        inset 3px 3px 0 0 #ffffff,
+        3px 3px 0 0 rgba(15, 23, 42, 0.5);
+      border-radius: 0;
+      transition: transform 0.06s steps(2), background-color 0.1s;
+    }
+
+    .pixel-btn:hover {
+      background: #e0f2fe;
+    }
+
+    .pixel-btn:active,
+    .pixel-btn.is-pressed {
+      transform: translate(2px, 2px);
+      box-shadow:
+        inset 3px 3px 0 0 #94a3b8,
+        1px 1px 0 0 rgba(15, 23, 42, 0.5);
+    }
+
+    .pixel-btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      border: 3px solid #0f172a;
+      box-shadow:
+        inset -3px -3px 0 0 #0369a1,
+        inset 3px 3px 0 0 #38bdf8,
+        3px 3px 0 0 rgba(15, 23, 42, 0.55);
+      border-radius: 0;
+      transition: transform 0.06s steps(2), filter 0.1s;
+    }
+
+    .pixel-btn-primary:hover {
+      filter: brightness(1.08);
+    }
+
+    .pixel-btn-primary:active,
+    .pixel-btn-primary.is-pressed {
+      transform: translate(2px, 2px);
+      box-shadow:
+        inset 3px 3px 0 0 #075985,
+        1px 1px 0 0 rgba(15, 23, 42, 0.55);
+    }
+
+    .pixel-btn-amber {
+      background: #f59e0b;
+      color: #0f172a;
+      border: 3px solid #0f172a;
+      box-shadow:
+        inset -3px -3px 0 0 #b45309,
+        inset 3px 3px 0 0 #fde68a,
+        3px 3px 0 0 rgba(15, 23, 42, 0.55);
+      border-radius: 0;
+      transition: transform 0.06s steps(2);
+    }
+
+    .pixel-btn-amber:active {
+      transform: translate(2px, 2px);
+    }
+
+    .pixel-card {
+      background: #ffffff;
+      border: 2px solid #0f172a;
+      box-shadow: 3px 3px 0 0 #cbd5e1;
+      border-radius: 0;
+    }
+
+    .pixel-tag {
+      border: 2px solid #0f172a;
+      border-radius: 0;
+    }
+
+    /* Native <dialog> Retro RPG Modal */
+    dialog.zone-dialog {
+      border: 4px solid #0f172a;
+      border-radius: 0;
+      padding: 0;
+      width: min(94vw, 46rem);
+      max-height: 86dvh;
+      background: #f8fafc;
+      box-shadow:
+        inset -4px -4px 0 0 #cbd5e1,
+        inset 4px 4px 0 0 #ffffff,
+        8px 8px 0 0 rgba(2, 6, 23, 0.65);
+      color: #0f172a;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    dialog.zone-dialog.admin-dialog {
+      width: min(96vw, 60rem);
+      max-height: 90dvh;
+    }
+
+    dialog.zone-dialog[open] {
+      display: flex;
+      flex-direction: column;
+      animation: pixelDialogIn 0.16s steps(4);
+    }
+
+    dialog.zone-dialog::backdrop {
+      background: rgba(15, 23, 42, 0.62);
+      background-image: radial-gradient(rgba(15, 23, 42, 0.35) 1px, transparent 0);
+      background-size: 4px 4px;
+    }
+
+    @keyframes pixelDialogIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Pixel Pulse untuk tombol interaksi aktif */
+    @keyframes pixelBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .animate-pixel-bounce {
+      animation: pixelBounce 0.7s steps(2) infinite;
+    }
+
+    /* Focus-visible tegas */
+    :focus-visible {
+      outline: 3px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    /* Scrollbar kotak retro */
+    .dialog-scroll::-webkit-scrollbar {
+      width: 10px;
+    }
+    .dialog-scroll::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-left: 2px solid #0f172a;
+    }
+    .dialog-scroll::-webkit-scrollbar-thumb {
+      background: #64748b;
+      border: 2px solid #0f172a;
+    }
+
+    /* Transisi HUD selama Intro Cutscene */
+    [data-hud-element] {
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .hud-hidden-intro {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(-6px);
+    }
+
+    #intro-greeting-overlay.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px);
+    }
+
+    /* Kursor ketikan retro RPG saat efek typewriter aktif */
+    @keyframes pixelCursorBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    #intro-greeting-text.is-typing::after {
+      content: '▌';
+      display: inline-block;
+      margin-left: 2px;
+      color: #0284c7;
+      animation: pixelCursorBlink 0.6s steps(2) infinite;
+    }

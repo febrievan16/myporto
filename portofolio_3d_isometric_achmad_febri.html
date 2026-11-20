@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Achmad Febri — IT Programmer &amp; Network Engineer | Portofolio 2D Isometric Pixel</title>
+  <meta name="description" content="Portofolio 2D Isometric Pixel Art interaktif Achmad Febri, IT Programmer dan Network Engineer di RSI Siti Hajar." />
+
+  <!-- Google Fonts: Press Start 2P (Pixel Headings), VT323 (Pixel UI), Inter (Readable Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            pixel: ['"Press Start 2P"', 'monospace'],
+            vt: ['"VT323"', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Custom Retro Pixel UI & Game Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Kanvas Utama Dunia 2D Isometric Pixel Art -->
+  <main id="game-container" aria-label="Dunia 2D Isometric Pixel Art Portofolio Achmad Febri">
+    <canvas id="game-canvas"></canvas>
+  </main>
+
+  <!-- HEADER PIXEL RPG (Identitas, Minimap & Kontrol Tema/Reset) -->
+  <header data-hud-element class="hud-hidden-intro pointer-events-none fixed top-0 left-0 right-0 z-20 flex flex-wrap items-start justify-between gap-2 p-2.5 sm:p-4">
+    <!-- Kartu Player HUD -->
+    <div class="pixel-panel pointer-events-auto flex items-center gap-3 px-3 py-2">
+      <div id="hud-initials" class="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-slate-900 bg-sky-600 font-pixel text-xs text-white shadow-[inset_-2px_-2px_0_#0369a1,inset_2px_2px_0_#38bdf8]">
+        AF
+      </div>
+      <div class="min-w-0">
+        <h1 id="hud-name" class="truncate font-pixel text-[11px] leading-tight text-slate-900 sm:text-xs">ACHMAD FEBRI</h1>
+        <p id="hud-subtitle" class="mt-1 truncate font-vt text-base leading-none text-slate-700 sm:text-lg">
+          LV.31 · IT Programmer &amp; Network Eng · RSI Siti Hajar
+        </p>
+      </div>
+    </div>
+
+    <!-- Mini-Map Progress Bar Horizontal (Desktop & Tablet) -->
+    <div class="pixel-panel-dark pointer-events-auto hidden flex-col gap-1 px-3 py-2 md:flex" aria-label="Peta posisi karakter">
+      <div class="flex items-center justify-between gap-4 font-pixel text-[8px] text-sky-300">
+        <span>MAP: KIRI ──► KANAN</span>
+        <span id="hud-zone-status" class="text-amber-300">JALUR UTAMA</span>
+      </div>
+      <div class="relative mt-1 h-3 w-64 border-2 border-slate-950 bg-slate-800">
+        <!-- Titik 4 Stasiun -->
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-sky-400" style="left: 20%" title="1. Profil"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-emerald-400" style="left: 42%" title="2. Project"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-indigo-400" style="left: 64%" title="3. Portofolio"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-amber-400" style="left: 86%" title="4. Kontak"></span>
+        <!-- Indikator Posisi Player -->
+        <span id="minimap-player-dot" class="absolute top-1/2 h-3.5 w-2.5 -translate-x-1/2 -translate-y-1/2 border border-slate-950 bg-white transition-all duration-75" style="left: 8%"></span>
+      </div>
+    </div>
+
+    <!-- Tombol Mode Siang/Malam, Reset & Admin CMS -->
+    <div class="pointer-events-auto flex items-center gap-2">
+      <button
+        id="btn-theme-toggle"
+        type="button"
+        class="pixel-btn flex h-10 items-center gap-1.5 px-3 font-pixel text-[9px] sm:text-[10px]"
+        aria-label="Ubah mode siang atau malam (T)"
+        title="Ubah Siang / Malam (T)"
+      >
+        <span id="icon-theme" class="text-sm leading-none">☀</span>
+        <span id="label-theme" class="hidden sm:inline">SIANG</span>
+      </button>
+
+      <button
+        id="btn-reset-pos"
+        type="button"
+        class="pixel-btn flex h-10 items-center gap-1.5 px-3 font-pixel text-[9px] sm:text-[10px]"
+        aria-label="Kembali ke posisi awal (R)"
+        title="Kembali ke Awal (R)"
+      >
+        <span>↺</span>
+        <span class="hidden sm:inline">RESET</span>
+      </button>
+
+      <button
+        id="btn-open-admin"
+        type="button"
+        class="pixel-btn-amber flex h-10 items-center gap-1.5 px-3 font-pixel text-[9px] sm:text-[10px]"
+        aria-label="Buka Panel Admin CMS (Alt+A)"
+        title="Panel Admin CMS (Alt+A)"
+      >
+        <span>⚙</span>
+        <span class="hidden sm:inline">ADMIN</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFIKASI PIXEL -->
+  <div
+    id="status-toast"
+    role="status"
+    aria-live="polite"
+    class="pixel-panel-dark pointer-events-none fixed top-20 left-1/2 z-30 -translate-x-1/2 translate-y-2 px-4 py-2 font-pixel text-[9px] text-amber-300 opacity-0 transition-all duration-200 sm:text-[10px]"
+  ></div>
+
+  <!-- KONTROL BAWAH: D-PAD KIRI/KANAN + TOMBOL INTERAKSI + NAVIGASI ZONA 1-4 -->
+  <div data-hud-element class="hud-hidden-intro pointer-events-none fixed bottom-3 left-0 right-0 z-20 flex flex-col items-center gap-2 px-3 sm:bottom-4">
+    <!-- Baris 1: Tombol Kontrol Kiri / Buka Zona / Kanan -->
+    <div class="pointer-events-auto flex items-center gap-2 sm:gap-3">
+      <button
+        id="btn-move-left"
+        type="button"
+        class="pixel-btn flex items-center gap-2 px-4 py-2.5 font-pixel text-[10px] sm:px-5 sm:text-xs"
+        aria-label="Gerak ke Kiri (Tombol A atau Panah Kiri)"
+      >
+        <span>◄</span>
+        <span>KIRI</span>
+      </button>
+
+      <button
+        id="btn-interact-zone"
+        type="button"
+        class="pixel-btn-amber animate-pixel-bounce hidden items-center gap-1.5 px-3.5 py-2.5 font-pixel text-[9px] sm:text-[10px]"
+        aria-label="Buka info zona terdekat (Tombol E atau Enter)"
+      >
+        <span>[E]</span>
+        <span id="btn-interact-label">BUKA</span>
+      </button>
+
+      <button
+        id="btn-move-right"
+        type="button"
+        class="pixel-btn flex items-center gap-2 px-4 py-2.5 font-pixel text-[10px] sm:px-5 sm:text-xs"
+        aria-label="Gerak ke Kanan (Tombol D atau Panah Kanan)"
+      >
+        <span>KANAN</span>
+        <span>►</span>
+      </button>
+    </div>
+
+    <!-- Baris 2: Navigasi Cepat 4 Stasiun (Berjejer Kiri ke Kanan) -->
+    <nav
+      aria-label="Navigasi cepat stasiun portofolio"
+      class="pixel-panel pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto p-1.5 sm:gap-1.5"
+    >
+      <button
+        type="button"
+        data-zone-nav="profil"
+        class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-sky-100 sm:text-[9px]"
+      >
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-sky-500 text-[8px] text-white">1</span>
+        <span>PROFIL</span>
+      </button>
+      <span class="font-vt text-slate-400">─</span>
+      <button
+        type="button"
+        data-zone-nav="project"
+        class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-emerald-100 sm:text-[9px]"
+      >
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-emerald-500 text-[8px] text-white">2</span>
+        <span>PROJECT</span>
+      </button>
+      <span class="font-vt text-slate-400">─</span>
+      <button
+        type="button"
+        data-zone-nav="portofolio"
+        class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-indigo-100 sm:text-[9px]"
+      >
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-indigo-500 text-[8px] text-white">3</span>
+        <span>PORTOFOLIO</span>
+      </button>
+      <span class="font-vt text-slate-400">─</span>
+      <button
+        type="button"
+        data-zone-nav="kontak"
+        class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-amber-100 sm:text-[9px]"
+      >
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-amber-500 text-[8px] text-slate-900">4</span>
+        <span>KONTAK</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- PANEL PETUNJUK KONTROL (POJOK KIRI BAWAH DI DESKTOP) -->
+  <aside
+    data-hud-element
+    aria-label="Petunjuk kontrol permainan"
+    class="hud-hidden-intro fixed bottom-28 left-3 z-20 hidden lg:block"
+  >
+    <div id="controls-hint-card" class="pixel-panel w-60 p-3 text-xs text-slate-800">
+      <div class="mb-2 flex items-center justify-between border-b-2 border-slate-900 pb-1.5">
+        <span class="font-pixel text-[8px] text-slate-900">KONTROL 2D PIXEL</span>
+        <button
+          id="btn-hide-hint"
+          type="button"
+          class="font-pixel text-[8px] text-slate-500 hover:text-slate-900"
+          aria-label="Sembunyikan petunjuk"
+        >
+          [X]
+        </button>
+      </div>
+      <ul class="space-y-1.5 font-vt text-base leading-tight text-slate-700">
+        <li class="flex items-center justify-between">
+          <span>Jalan Kiri / Kanan</span>
+          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">A/D / ◄►</kbd>
+        </li>
+        <li class="flex items-center justify-between">
+          <span>Scroll Atas / Bawah</span>
+          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">KIRI / KANAN</kbd>
+        </li>
+        <li class="flex items-center justify-between">
+          <span>Buka Bangunan</span>
+          <kbd class="border border-slate-900 bg-amber-200 px-1.5 font-pixel text-[7px]">E / ENTER</kbd>
+        </li>
+        <li class="flex items-center justify-between">
+          <span>Jalan Otomatis</span>
+          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">KLIK</kbd>
+        </li>
+        <li class="flex items-center justify-between">
+          <span>Stasiun / Siang-Malam</span>
+          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">1-4 / T</kbd>
+        </li>
+      </ul>
+    </div>
+
+    <button
+      id="btn-show-hint"
+      type="button"
+      class="pixel-btn hidden items-center gap-1.5 px-3 py-2 font-pixel text-[9px]"
+      aria-label="Tampilkan petunjuk kontrol"
+    >
+      <span>?</span>
+      <span>BANTUAN</span>
+    </button>
+  </aside>
+
+  <!-- KOTAK DIALOG SAPAAN INTRO GAME RPG -->
+  <div
+    id="intro-greeting-overlay"
+    role="dialog"
+    aria-label="Sapaan Selamat Datang Achmad Febri"
+    class="pointer-events-auto fixed inset-x-0 bottom-5 z-30 flex justify-center px-3 transition-all duration-300 sm:bottom-9 sm:px-4"
+  >
+    <div class="pixel-panel w-full max-w-xl p-4 sm:p-5">
+      <div class="mb-2.5 flex items-center justify-between gap-2 border-b-2 border-slate-900 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="flex h-6 w-6 items-center justify-center border-2 border-slate-900 bg-sky-600 font-pixel text-[8px] text-white">AF</span>
+          <span class="pixel-tag bg-sky-600 px-2.5 py-0.5 font-pixel text-[8px] text-white sm:text-[9px]">
+            ★ ACHMAD FEBRI
+          </span>
+        </div>
+        <span class="font-pixel text-[7px] text-slate-500 sm:text-[8px]">[KLIK / ENTER]</span>
+      </div>
+      <p
+        id="intro-greeting-text"
+        class="is-typing min-h-[3.5rem] font-vt text-xl leading-snug text-slate-900 sm:text-2xl"
+      ></p>
+      <div class="mt-3 flex items-center justify-between gap-2">
+        <span id="intro-auto-hint" class="font-vt text-base text-slate-500">Menyapa pengunjung...</span>
+        <button
+          id="btn-finish-intro"
+          type="button"
+          class="pixel-btn-amber animate-pixel-bounce px-4 py-2 font-pixel text-[8px] sm:text-[9px]"
+        >
+          MULAI JELAJAH ►
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- NATIVE <dialog> RETRO PIXEL MODAL UNTUK 4 ZONA            -->
+  <!-- ========================================================= -->
+
+  <!-- DIALOG ZONA 1: PROFIL & DATA DIRI -->
+  <dialog id="dialog-profil" class="zone-dialog" aria-labelledby="title-profil">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-sky-600 px-5 py-3.5 text-white">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-sky-700">01</span>
+        <div>
+          <h2 id="title-profil" class="font-pixel text-xs sm:text-sm">PROFIL &amp; DATA DIRI</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-sky-100">Paviliun Workstation · Achmad Febri</p>
+        </div>
+      </div>
+      <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup dialog profil">
+        X
+      </button>
+    </div>
+
+    <div id="profil-dynamic-content" class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-5"></div>
+  </dialog>
+
+  <!-- DIALOG ZONA 2: CONTOH PROJECT -->
+  <dialog id="dialog-project" class="zone-dialog" aria-labelledby="title-project">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-emerald-600 px-5 py-3.5 text-white">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-emerald-700">02</span>
+        <div>
+          <h2 id="title-project" class="font-pixel text-xs sm:text-sm">CONTOH PROJECT</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-emerald-100">Server Rack &amp; Network Tower · Lingkungan Rumah Sakit</p>
+        </div>
+      </div>
+      <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup dialog project">
+        X
+      </button>
+    </div>
+
+    <div id="project-dynamic-list" class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-4"></div>
+  </dialog>
+
+  <!-- DIALOG ZONA 3: PORTOFOLIO (DENGAN FILTER KATEGORI) -->
+  <dialog id="dialog-portofolio" class="zone-dialog" aria-labelledby="title-portofolio">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-indigo-600 px-5 py-3.5 text-white">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-indigo-700">03</span>
+        <div>
+          <h2 id="title-portofolio" class="font-pixel text-xs sm:text-sm">GALERI PORTOFOLIO</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-indigo-100">Galeri Showcase Arcade · Filter bidang keahlian</p>
+        </div>
+      </div>
+      <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup dialog portofolio">
+        X
+      </button>
+    </div>
+
+    <div class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-5">
+      <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter kategori portofolio">
+        <button type="button" data-filter="all" class="portfolio-filter-btn pixel-btn-primary px-3 py-2 font-pixel text-[9px]" aria-pressed="true">
+          SEMUA
+        </button>
+        <button type="button" data-filter="web" class="portfolio-filter-btn pixel-btn px-3 py-2 font-pixel text-[9px]" aria-pressed="false">
+          WEB DEV
+        </button>
+        <button type="button" data-filter="network" class="portfolio-filter-btn pixel-btn px-3 py-2 font-pixel text-[9px]" aria-pressed="false">
+          NETWORK &amp; INFRA
+        </button>
+      </div>
+
+      <div id="portfolio-grid" class="grid grid-cols-1 gap-3.5 sm:grid-cols-2"></div>
+    </div>
+  </dialog>
+
+  <!-- DIALOG ZONA 4: KONTAK -->
+  <dialog id="dialog-kontak" class="zone-dialog" aria-labelledby="title-kontak">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-amber-500 px-5 py-3.5 text-slate-950">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-amber-700">04</span>
+        <div>
+          <h2 id="title-kontak" class="font-pixel text-xs sm:text-sm">HUBUNGI ACHMAD FEBRI</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-amber-950">Menara Sinyal · Diskusi Proyek &amp; Kolaborasi IT</p>
+        </div>
+      </div>
+      <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup dialog kontak">
+        X
+      </button>
+    </div>
+
+    <div class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-5">
+      <section class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="pixel-card bg-amber-50 p-3.5">
+          <p class="font-pixel text-[8px] uppercase text-slate-500">Lokasi Kerja</p>
+          <p id="contact-location-val" class="mt-1.5 text-sm font-bold text-slate-900">RSI Siti Hajar, Sidoarjo</p>
+        </div>
+        <div class="pixel-card bg-amber-50 p-3.5">
+          <p class="font-pixel text-[8px] uppercase text-slate-500">Email Profesional</p>
+          <p id="contact-email-val" class="mt-1.5 text-sm font-bold text-sky-700">achmad.febri@it-rsisitihajar.id</p>
+        </div>
+      </section>
+
+      <!-- Tautan Media Sosial & Profil (IG, LinkedIn, GitHub) -->
+      <section class="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        <a
+          id="contact-ig-link"
+          href="https://instagram.com/achmadfebri"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pixel-card flex items-center gap-2.5 bg-pink-50/70 p-3 text-slate-900 no-underline transition hover:bg-pink-100/90 active:translate-y-0.5"
+          title="Kunjungi Instagram"
+        >
+          <span class="flex h-7 w-7 shrink-0 items-center justify-center border-2 border-slate-900 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 font-pixel text-[9px] text-white">IG</span>
+          <div class="min-w-0">
+            <p class="font-pixel text-[7px] text-slate-500">INSTAGRAM</p>
+            <p id="contact-ig-val" class="truncate text-xs font-bold text-slate-900">@achmadfebri</p>
+          </div>
+        </a>
+
+        <a
+          id="contact-linkedin-link"
+          href="https://linkedin.com/in/achmadfebri"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pixel-card flex items-center gap-2.5 bg-sky-50/70 p-3 text-slate-900 no-underline transition hover:bg-sky-100/90 active:translate-y-0.5"
+          title="Kunjungi LinkedIn"
+        >
+          <span class="flex h-7 w-7 shrink-0 items-center justify-center border-2 border-slate-900 bg-sky-600 font-pixel text-[9px] text-white">IN</span>
+          <div class="min-w-0">
+            <p class="font-pixel text-[7px] text-slate-500">LINKEDIN</p>
+            <p id="contact-linkedin-val" class="truncate text-xs font-bold text-slate-900">Achmad Febri</p>
+          </div>
+        </a>
+
+        <a
+          id="contact-github-link"
+          href="https://github.com/achmadfebri"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pixel-card flex items-center gap-2.5 bg-slate-100 p-3 text-slate-900 no-underline transition hover:bg-slate-200/90 active:translate-y-0.5"
+          title="Kunjungi GitHub"
+        >
+          <span class="flex h-7 w-7 shrink-0 items-center justify-center border-2 border-slate-900 bg-slate-900 font-pixel text-[9px] text-white">GH</span>
+          <div class="min-w-0">
+            <p class="font-pixel text-[7px] text-slate-500">GITHUB</p>
+            <p id="contact-github-val" class="truncate text-xs font-bold text-slate-900">achmadfebri</p>
+          </div>
+        </a>
+      </section>
+
+      <form id="contact-form" class="pixel-card space-y-4 p-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label for="contact-name" class="mb-1.5 block font-pixel text-[8px] text-slate-700">NAMA LENGKAP</label>
+            <input
+              id="contact-name"
+              name="name"
+              type="text"
+              required
+              minlength="2"
+              placeholder="Contoh: Budi Santoso"
+              class="w-full border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-sky-50 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label for="contact-email" class="mb-1.5 block font-pixel text-[8px] text-slate-700">ALAMAT EMAIL</label>
+            <input
+              id="contact-email"
+              name="email"
+              type="email"
+              required
+              placeholder="nama@domain.com"
+              class="w-full border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-sky-50 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="contact-topic" class="mb-1.5 block font-pixel text-[8px] text-slate-700">TOPIK DISKUSI</label>
+          <select
+            id="contact-topic"
+            name="topic"
+            required
+            class="w-full border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-900 focus:bg-sky-50 focus:outline-none"
+          >
+            <option value="">Pilih topik...</option>
+            <option value="Pengembangan Web / SIMRS">Pengembangan Web / Aplikasi</option>
+            <option value="Konsultasi Jaringan & Server">Konsultasi Jaringan &amp; Server</option>
+            <option value="Kolaborasi Proyek IT">Kolaborasi Proyek IT</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="contact-message" class="mb-1.5 block font-pixel text-[8px] text-slate-700">PESAN SINGKAT</label>
+          <textarea
+            id="contact-message"
+            name="message"
+            rows="3"
+            required
+            minlength="10"
+            placeholder="Tuliskan kebutuhan atau pertanyaan Anda (minimal 10 karakter)..."
+            class="w-full resize-none border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-sky-50 focus:outline-none"
+          ></textarea>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <p id="contact-feedback" class="text-xs font-bold text-emerald-700" role="status" aria-live="polite"></p>
+          <button
+            type="submit"
+            class="pixel-btn-primary px-5 py-2.5 font-pixel text-[10px]"
+          >
+            KIRIM PESAN ►
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- DIALOG PANEL ADMIN CMS (TERINTEGRASI IN-GAME) -->
+  <dialog id="dialog-admin" class="zone-dialog admin-dialog" aria-labelledby="title-admin">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-slate-900 px-5 py-3.5 text-white">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-950 bg-amber-400 font-pixel text-[10px] text-slate-950">⚙</span>
+        <div>
+          <h2 id="title-admin" class="font-pixel text-xs sm:text-sm text-amber-300">PANEL ADMIN CMS</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-slate-300">Tambah &amp; Edit Isi Portofolio Secara Langsung</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a
+          href="admin.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="pixel-btn hidden px-2.5 py-1.5 font-pixel text-[8px] no-underline sm:inline-block"
+          title="Buka di halaman layar penuh"
+        >
+          LAYAR PENUH ↗
+        </a>
+        <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup panel admin">
+          X
+        </button>
+      </div>
+    </div>
+
+    <div class="dialog-scroll overflow-y-auto bg-slate-50 p-5">
+      <div id="admin-modal-mount"></div>
+    </div>
+  </dialog>
+
+  <script src="js/cms-core.js?v=2"></script>
+  <!-- 2D Isometric Pixel Art Engine & Dynamic CMS Renderer -->
+  <script src="js/game.js?v=2"></script>
+</body>
+</html>
