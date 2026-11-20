@@ -148,6 +148,30 @@
         linkUrl: '',
       },
     ],
+    experiences: [
+      {
+        id: 'exp-1',
+        period: '2021 – Sekarang',
+        role: 'IT Programmer & Network Engineer',
+        company: 'RSI Siti Hajar',
+        location: 'Sidoarjo',
+        isCurrent: true,
+        description:
+          'Mengembangkan sistem informasi layanan kesehatan (SIMRS, bridging API, aplikasi web internal) serta merancang & memelihara infrastruktur jaringan VLAN, server Proxmox HA, dan monitoring 24/7.',
+        tags: ['PHP / Laravel', 'SIMRS Bridging', 'MikroTik & VLAN', 'Proxmox HA'],
+      },
+      {
+        id: 'exp-2',
+        period: '2019 – 2021',
+        role: 'Web Developer & IT Support',
+        company: 'Proyek Mandiri & Instansi',
+        location: 'Sidoarjo / Surabaya',
+        isCurrent: false,
+        description:
+          'Membangun aplikasi web custom (layanan tiket event, manajemen data, profil instansi) serta menangani instalasi dan pemeliharaan jaringan LAN/Wi-Fi.',
+        tags: ['Web Development', 'MySQL', 'LAN / Wi-Fi', 'Troubleshooting'],
+      },
+    ],
     contact: {
       location: 'RSI Siti Hajar, Sidoarjo',
       email: 'febrievan16@gmail.com',
@@ -229,14 +253,23 @@
     return storageMode;
   }
 
+  function normalizeData(data) {
+    if (!data || typeof data !== 'object') return deepClone(DEFAULT_DATA);
+    if (!Array.isArray(data.experiences)) {
+      data.experiences = deepClone(DEFAULT_DATA.experiences);
+    }
+    return data;
+  }
+
   async function loadData() {
     const mode = await detectStorageMode();
     if (mode === 'server') {
       try {
         const res = await apiFetch('get_data');
         if (res.data && res.data.profile) {
-          localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(res.data));
-          return res.data;
+          const normalized = normalizeData(res.data);
+          localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(normalized));
+          return normalized;
         }
       } catch (err) {
         console.warn('Gagal muat dari server, pakai fallback lokal:', err);
@@ -247,7 +280,7 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.profile && Array.isArray(parsed.projects) && Array.isArray(parsed.portfolios)) {
-          return parsed;
+          return normalizeData(parsed);
         }
       }
     } catch {
@@ -437,7 +470,8 @@
     let authenticated = await checkAuth();
     let draftData = deepClone(await loadData());
     let messages = authenticated ? await getMessages().catch(() => []) : [];
-    let activeTab = 'profil'; // 'profil' | 'project' | 'portofolio' | 'kontak' | 'pengaturan'
+    let activeTab = 'profil'; // 'profil' | 'pengalaman' | 'project' | 'portofolio' | 'kontak' | 'pengaturan'
+    let editingExpId = null;
     let editingProjectId = null;
     let editingPortfolioId = null;
     let editingSkillId = null;
@@ -659,6 +693,100 @@
                 </div>
               `).join('')}
             </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTabPengalaman() {
+      const list = Array.isArray(draftData.experiences) ? draftData.experiences : [];
+      const editItem = editingExpId ? list.find((x) => x.id === editingExpId) : null;
+
+      return `
+        <div class="space-y-5">
+          <form data-form-experience class="pixel-card space-y-3 p-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2">
+              <h3 class="font-pixel text-[10px] text-slate-900">
+                ${editItem ? 'EDIT ALUR PENGALAMAN KERJA' : '+ TAMBAH PENGALAMAN KERJA BARU'}
+              </h3>
+              ${editItem ? '<button type="button" data-cancel-exp class="pixel-btn px-2.5 py-1 font-pixel text-[8px]">BATAL EDIT</button>' : ''}
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">JABATAN / POSISI</label>
+                <input name="role" value="${escapeHtml(editItem?.role || '')}" required placeholder="Contoh: IT Programmer & Network Engineer" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PERUSAHAAN / INSTANSI</label>
+                <input name="company" value="${escapeHtml(editItem?.company || '')}" required placeholder="Contoh: RSI Siti Hajar" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PERIODE / TAHUN</label>
+                <input name="period" value="${escapeHtml(editItem?.period || '')}" required placeholder="Contoh: 2021 – Sekarang" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">LOKASI</label>
+                <input name="location" value="${escapeHtml(editItem?.location || '')}" placeholder="Contoh: Sidoarjo" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div class="flex items-end pb-1">
+                <label class="flex cursor-pointer items-center gap-2 border-2 border-slate-900 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-900 w-full">
+                  <input type="checkbox" name="isCurrent" value="1" ${editItem?.isCurrent ? 'checked' : ''} class="h-4 w-4 accent-rose-600" />
+                  <span>Status Aktif / Saat Ini</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block font-pixel text-[7px] text-slate-600">DESKRIPSI TUGAS &amp; PENCAPAIAN</label>
+              <textarea name="description" rows="2" required placeholder="Jelaskan tanggung jawab utama dan hasil kerja Anda..." class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs">${escapeHtml(editItem?.description || '')}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 items-end">
+              <div class="sm:col-span-2">
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">KEAHLIAN / TAGS (PISAHKAN DENGAN KOMA)</label>
+                <input name="tags" value="${escapeHtml((editItem?.tags || []).join(', '))}" placeholder="Laravel, SIMRS, MikroTik, Proxmox" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div class="flex justify-end">
+                <button type="submit" class="pixel-btn-primary w-full px-4 py-2 font-pixel text-[8px]">
+                  ${editItem ? 'UPDATE PENGALAMAN' : '+ SIMPAN PENGALAMAN'}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Daftar Alur Pengalaman Kerja -->
+          <div class="space-y-2.5">
+            ${
+              list.length === 0
+                ? '<div class="pixel-card p-6 text-center text-xs text-slate-500">Belum ada data pengalaman kerja. Tambahkan melalui form di atas.</div>'
+                : list
+                    .map(
+                      (exp, idx) => `
+              <div class="pixel-card flex flex-col justify-between gap-3 p-3.5 sm:flex-row sm:items-center">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="pixel-tag bg-rose-100 px-1.5 py-0.5 font-pixel text-[7px] text-rose-900">${escapeHtml(exp.period)}</span>
+                    ${exp.isCurrent ? '<span class="pixel-tag bg-emerald-200 px-1.5 py-0.5 font-pixel text-[7px] text-emerald-950">● AKTIF</span>' : ''}
+                    ${exp.location ? `<span class="text-[11px] font-semibold text-slate-500">· ${escapeHtml(exp.location)}</span>` : ''}
+                  </div>
+                  <h4 class="mt-1 truncate text-sm font-bold text-slate-900">${escapeHtml(exp.role)} — <span class="text-rose-700">${escapeHtml(exp.company)}</span></h4>
+                  <p class="mt-0.5 line-clamp-2 text-xs text-slate-600">${escapeHtml(exp.description)}</p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1.5">
+                  <button type="button" data-edit-exp="${escapeHtml(exp.id)}" class="pixel-btn px-2.5 py-1 font-pixel text-[7px]">EDIT</button>
+                  <button type="button" data-move-exp="${idx}:-1" class="pixel-btn px-1.5 py-1 font-pixel text-[7px]" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                  <button type="button" data-move-exp="${idx}:1" class="pixel-btn px-1.5 py-1 font-pixel text-[7px]" ${idx === list.length - 1 ? 'disabled' : ''}>▼</button>
+                  <button type="button" data-del-exp="${escapeHtml(exp.id)}" class="pixel-btn bg-rose-100 px-2.5 py-1 font-pixel text-[7px] text-rose-800">HAPUS</button>
+                </div>
+              </div>
+            `
+                    )
+                    .join('')
+            }
           </div>
         </div>
       `;
@@ -1097,7 +1225,72 @@
         });
       });
 
-      // --- TAB 2: PROJECTS ---
+      // --- TAB 2: PENGALAMAN KERJA ---
+      const formExperience = rootEl.querySelector('[data-form-experience]');
+      formExperience?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(formExperience);
+        if (!Array.isArray(draftData.experiences)) draftData.experiences = [];
+        const item = {
+          id: editingExpId || genId('exp'),
+          role: String(fd.get('role') || '').trim(),
+          company: String(fd.get('company') || '').trim(),
+          period: String(fd.get('period') || '').trim(),
+          location: String(fd.get('location') || '').trim(),
+          isCurrent: fd.get('isCurrent') === '1',
+          description: String(fd.get('description') || '').trim(),
+          tags: String(fd.get('tags') || '')
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean),
+        };
+        if (editingExpId) {
+          draftData.experiences = draftData.experiences.map((x) => (x.id === editingExpId ? item : x));
+          editingExpId = null;
+        } else {
+          draftData.experiences.unshift(item);
+        }
+        await persistDraft('Pengalaman kerja berhasil disimpan!');
+        render();
+      });
+
+      rootEl.querySelector('[data-cancel-exp]')?.addEventListener('click', () => {
+        editingExpId = null;
+        render();
+      });
+
+      rootEl.querySelectorAll('[data-edit-exp]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          editingExpId = btn.dataset.editExp;
+          render();
+        });
+      });
+
+      rootEl.querySelectorAll('[data-del-exp]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!Array.isArray(draftData.experiences)) return;
+          draftData.experiences = draftData.experiences.filter((x) => x.id !== btn.dataset.delExp);
+          if (editingExpId === btn.dataset.delExp) editingExpId = null;
+          await persistDraft('Pengalaman kerja dihapus.');
+          render();
+        });
+      });
+
+      rootEl.querySelectorAll('[data-move-exp]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const [idxStr, dirStr] = btn.dataset.moveExp.split(':');
+          const i = Number(idxStr);
+          const j = i + Number(dirStr);
+          const arr = draftData.experiences || [];
+          if (j >= 0 && j < arr.length) {
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            await persistDraft('Urutan pengalaman kerja diperbarui.');
+            render();
+          }
+        });
+      });
+
+      // --- TAB 3: PROJECTS ---
       const formProject = rootEl.querySelector('[data-form-project]');
       formProject?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1316,7 +1509,7 @@
             if (!parsed.profile || !Array.isArray(parsed.projects) || !Array.isArray(parsed.portfolios)) {
               throw new Error('Struktur JSON tidak valid.');
             }
-            draftData = parsed;
+            draftData = normalizeData(parsed);
             await persistDraft('Data berhasil diimpor dari JSON!');
             render();
           } catch (err) {
@@ -1329,6 +1522,7 @@
       rootEl.querySelector('[data-reset-default]')?.addEventListener('click', async () => {
         if (!window.confirm('Reset seluruh data portofolio kembali ke data bawaan awal?')) return;
         draftData = deepClone(DEFAULT_DATA);
+        editingExpId = null;
         editingProjectId = null;
         editingPortfolioId = null;
         editingSkillId = null;
@@ -1344,16 +1538,19 @@
       }
 
       const unread = messages.filter((m) => !m.read).length;
+      const expCount = Array.isArray(draftData.experiences) ? draftData.experiences.length : 0;
       const tabs = [
         { id: 'profil', label: '1. PROFIL & SKILL' },
-        { id: 'project', label: `2. PROJECT (${draftData.projects.length})` },
-        { id: 'portofolio', label: `3. PORTOFOLIO (${draftData.portfolios.length})` },
-        { id: 'kontak', label: `4. KONTAK & SOSMED${unread > 0 ? ` [${unread}]` : ''}` },
-        { id: 'pengaturan', label: '5. PENGATURAN' },
+        { id: 'pengalaman', label: `2. PENGALAMAN (${expCount})` },
+        { id: 'project', label: `3. PROJECT (${draftData.projects.length})` },
+        { id: 'portofolio', label: `4. PORTOFOLIO (${draftData.portfolios.length})` },
+        { id: 'kontak', label: `5. KONTAK & SOSMED${unread > 0 ? ` [${unread}]` : ''}` },
+        { id: 'pengaturan', label: '6. PENGATURAN' },
       ];
 
       let tabBody = '';
       if (activeTab === 'profil') tabBody = renderTabProfil();
+      else if (activeTab === 'pengalaman') tabBody = renderTabPengalaman();
       else if (activeTab === 'project') tabBody = renderTabProject();
       else if (activeTab === 'portofolio') tabBody = renderTabPortofolio();
       else if (activeTab === 'kontak') tabBody = renderTabKontak();

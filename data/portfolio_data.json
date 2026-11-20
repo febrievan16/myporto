@@ -6,7 +6,7 @@
         "hudSubtitle": "IT Programmer & Network Eng · RSI Siti Hajar Sidoarjo",
         "role": "IT Programmer & Network Engineer at RSI Siti Hajar Sidoarjo",
         "company": "RSI Siti Hajar",
-        "bio": "Bertugas di RSI Siti Hajar selama 5 Tahun — berfokus pada pengembangan sistem informasi layanan kesehatan, integrasi aplikasi, serta keandalan infrastruktur jaringan & server rumah sakit.",
+        "bio": "Bertugas di RSI Siti Hajar dari tahun 2022 — berfokus pada pengembangan sistem informasi layanan kesehatan, integrasi aplikasi, serta keandalan infrastruktur jaringan & server rumah sakit.",
         "highlights": [
             {
                 "label": "Instansi",
@@ -110,7 +110,7 @@
                 "Midtrans",
                 "Tailwind CSS"
             ],
-            "imageUrl": "",
+            "imageUrl": "uploads/thumb_20261120_231704_a9a27c67.jpg",
             "linkUrl": "https://github.com/febrievan16/PGcandibaruWEB"
         },
         {
@@ -196,6 +196,37 @@
             ],
             "imageUrl": "",
             "linkUrl": ""
+        }
+    ],
+    "experiences": [
+        {
+            "id": "exp-1",
+            "role": "IT Programmer & Network Engineer",
+            "company": "RSI Siti Hajar",
+            "period": "2022 – Sekarang",
+            "location": "Sidoarjo",
+            "isCurrent": true,
+            "description": "Mengembangkan sistem informasi layanan kesehatan (SIMRS, bridging API, aplikasi web internal) serta merancang & memelihara infrastruktur jaringan VLAN, server Proxmox HA, dan monitoring 24/7.",
+            "tags": [
+                "PHP / Laravel",
+                "SIMRS Bridging",
+                "MikroTik & VLAN",
+                "Proxmox HA"
+            ]
+        },
+        {
+            "id": "exp-2",
+            "role": "Pendamping Desa",
+            "company": "Kementrian desa",
+            "period": "2019 – 2021",
+            "location": "Sidoarjo / Surabaya",
+            "isCurrent": false,
+            "description": "Mengawasi dan selalu mengecek terkait Dana Desa. membantu pemdes melakukan pengecekan rutin untuk update datae di SISKEUDES,",
+            "tags": [
+                "Audit",
+                "Data analys",
+                "Pelaporan dan entry Data"
+            ]
         }
     ],
     "contact": {

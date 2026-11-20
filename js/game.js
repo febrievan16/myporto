@@ -6,11 +6,11 @@
      * =========================================================================
      */
     const WORLD_CONFIG = {
-      width: 1460,          // Panjang lintasan dunia (dalam logical pixels)
+      width: 1760,          // Panjang lintasan dunia untuk 5 stasiun (dalam logical pixels)
       minWalkX: 70,         // Batas jalan paling kiri
-      maxWalkX: 1380,       // Batas jalan paling kanan
+      maxWalkX: 1680,       // Batas jalan paling kanan
       spawnX: 130,          // Posisi awal karakter di sisi kiri
-      zoneSpacing: 300,     // Jarak seragam antar 4 bangunan stasiun
+      zoneSpacing: 300,     // Jarak seragam antar 5 bangunan stasiun
     };
 
     const ZONES_CONFIG = [
@@ -30,46 +30,61 @@
         dialogId: 'dialog-profil',
       },
       {
-        id: 'project',
+        id: 'pengalaman',
         key: '2',
         code: '02',
+        shortLabel: 'PENGALAMAN',
+        title: 'Pengalaman Kerja',
+        subtitle: 'Menara Karier',
+        accent: '#e11d48',
+        accentLight: '#fb7185',
+        accentDark: '#be123c',
+        worldX: 590,
+        interactRadius: 56,
+        hitbox: { w: 106, h: 102 },
+        dialogId: 'dialog-pengalaman',
+      },
+      {
+        id: 'project',
+        key: '3',
+        code: '03',
         shortLabel: 'PROJECT',
         title: 'Contoh Project',
         subtitle: 'Server & Network Tower',
         accent: '#059669',
         accentLight: '#34d399',
         accentDark: '#047857',
-        worldX: 590,
+        worldX: 890,
         interactRadius: 56,
         hitbox: { w: 106, h: 110 },
         dialogId: 'dialog-project',
       },
       {
         id: 'portofolio',
-        key: '3',
-        code: '03',
+        key: '4',
+        code: '04',
         shortLabel: 'PORTOFOLIO',
         title: 'Galeri Portofolio',
         subtitle: 'Galeri Showcase Arcade',
         accent: '#4f46e5',
         accentLight: '#818cf8',
         accentDark: '#3730a3',
-        worldX: 890,
+        worldX: 1190,
         interactRadius: 56,
         hitbox: { w: 112, h: 96 },
         dialogId: 'dialog-portofolio',
       },
       {
         id: 'kontak',
-        key: '4',
-        code: '04',
+        key: '5',
+        code: '05',
         shortLabel: 'KONTAK',
         title: 'Kontak',
         subtitle: 'Menara Sinyal',
         accent: '#d97706',
         accentLight: '#fbbf24',
         accentDark: '#b45309',
-        worldX: 1190,
+        worldX: 1490,
         interactRadius: 56,
         hitbox: { w: 104, h: 122 },
         dialogId: 'dialog-kontak',
@@ -194,7 +209,7 @@
       { x: 604, w: 36, h: 34, windows: false },
     ];
 
-    // Dekorasi penyela antar bangunan (berjejer rapi di antara zona)
+    // Dekorasi penyela antar bangunan (berjejer rapi di antara 5 zona)
     const sceneryProps = [
       { type: 'sign-start', x: 178, text: 'MULAI ►' },
       { type: 'tree', x: 205, variant: 0 },
@@ -210,9 +225,13 @@
       { type: 'bench', x: 1026 },
       { type: 'tree', x: 1062, variant: 1 },
       { type: 'sign', x: 1094, text: '04 ►' },
-      { type: 'lamp', x: 1290 },
-      { type: 'tree', x: 1324, variant: 0 },
-      { type: 'sign-end', x: 1356, text: '◄ SELESAI' },
+      { type: 'lamp', x: 1292 },
+      { type: 'tree', x: 1326, variant: 0 },
+      { type: 'relay', x: 1360 },
+      { type: 'sign', x: 1394, text: '05 ►' },
+      { type: 'lamp', x: 1590 },
+      { type: 'tree', x: 1624, variant: 1 },
+      { type: 'sign-end', x: 1656, text: '◄ SELESAI' },
     ];
 
     // Paket data bercahaya yang mengalir sepanjang jalur fiber optik kiri -> kanan
@@ -561,6 +580,8 @@
         // 2. Gambar Struktur Khusus Masing-Masing Zona
         if (zone.id === 'profil') {
           drawBuildingProfil(sx, baseY - 4, isActive);
+        } else if (zone.id === 'pengalaman') {
+          drawBuildingPengalaman(sx, baseY - 4, isActive);
         } else if (zone.id === 'project') {
           drawBuildingProject(sx, baseY - 4, isActive);
         } else if (zone.id === 'portofolio') {
@@ -570,7 +591,14 @@
         }
 
         // 3. Plang Nama Pixel di Atas Bangunan
-        const signY = zone.id === 'kontak' ? baseY - 108 : zone.id === 'project' ? baseY - 94 : baseY - 82;
+        const signY =
+          zone.id === 'kontak'
+            ? baseY - 108
+            : zone.id === 'project'
+              ? baseY - 94
+              : zone.id === 'pengalaman'
+                ? baseY - 88
+                : baseY - 82;
         const bob = isActive ? Math.round(Math.sin(elapsedTime * 6) * 1.5) : 0;
         drawZoneBanner(sx, signY + bob, zone, isActive);
 
@@ -622,7 +650,54 @@
     }
 
     /**
-     * ZONA 2: Server Rack & Network Node Tower (Contoh Project)
+     * ZONA 2: Menara Karier & Alur Pengalaman Kerja (Animated Flowing Current Facade)
+     */
+    function drawBuildingPengalaman(sx, y, isActive) {
+      // Struktur gedung utama Menara Karier
+      drawIsoBlock(sx - 34, y - 56, 68, 52, 8, '#f8fafc', isNightMode ? '#1e293b' : '#ffe4e6', '#fda4af');
+
+      // Layar panel gelap besar di depan gedung untuk visual alur arus berjalan
+      px(sx - 28, y - 48, 56, 38, '#0f172a');
+      px(sx - 27, y - 47, 54, 36, '#1e293b');
+
+      // Jalur pipa vertikal arus berjalan di tengah panel
+      px(sx - 18, y - 44, 3, 30, '#0284c7');
+      // Pulsa cahaya arus berjalan (mengalir dari atas ke bawah)
+      const flowOffset = Math.floor(elapsedTime * 22) % 28;
+      px(sx - 18, y - 44 + flowOffset, 3, 4, '#ffffff');
+      px(sx - 18, y - 44 + ((flowOffset + 14) % 28), 3, 4, '#fb7185');
+
+      // 3 Node milestone pengalaman + garis cabang & bar info mini
+      [0, 1, 2].forEach((i) => {
+        const ny = y - 42 + i * 10;
+        const activePulse = Math.floor(elapsedTime * 3) % 3 === i;
+        // Node titik di jalur
+        px(sx - 19, ny, 5, 5, i === 0 ? '#e11d48' : activePulse ? '#38bdf8' : '#0ea5e9');
+        px(sx - 18, ny + 1, 3, 3, '#ffffff');
+        // Garis cabang horizontal
+        px(sx - 14, ny + 2, 6, 1, activePulse ? '#fbbf24' : '#38bdf8');
+        // Kartu bar mini pengalaman
+        px(sx - 8, ny, 31, 6, i === 0 ? '#334155' : '#0f172a');
+        px(sx - 6, ny + 2, i === 0 ? 22 : 16, 2, i === 0 ? '#fb7185' : '#38bdf8');
+      });
+
+      // Pintu masuk bawah & karpet rose
+      px(sx - 7, y - 10, 14, 10, '#0f172a');
+      px(sx - 5, y - 8, 10, 8, isActive ? '#fb7185' : '#e11d48');
+
+      // Atap isometric aksen Rose
+      drawIsoBlock(sx - 38, y - 62, 76, 7, 10, '#ffffff', '#e11d48', '#be123c');
+      // Menara sinyal kecil di atap
+      px(sx - 1, y - 70, 3, 8, '#475569');
+      const beaconOn = Math.floor(elapsedTime * 4) % 2 === 0;
+      px(sx - 2, y - 72, 5, 3, beaconOn ? '#fb7185' : '#9f1239');
+      if (isActive) {
+        px(sx - 36, y - 57, 72, 2, '#fda4af');
+      }
+    }
+
+    /**
+     * ZONA 3: Server Rack & Network Node Tower (Contoh Project)
      */
     function drawBuildingProject(sx, y, isActive) {
       // Dua menara rak server berjajar
@@ -1766,9 +1841,127 @@
       }
     }
 
+    function renderPengalamanDialog() {
+      const list = document.getElementById('pengalaman-timeline-list');
+      if (!list) return;
+      list.replaceChildren();
+
+      const items = Array.isArray(appData.experiences) ? appData.experiences : [];
+
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'pixel-card p-6 text-center text-xs text-slate-500';
+        empty.textContent = 'Belum ada riwayat pengalaman kerja. Tambahkan melalui Panel Admin (Tab 2: Pengalaman).';
+        list.appendChild(empty);
+        return;
+      }
+
+      // 1. Jalur Pipa Arus Berjalan (Flowing Current Spine + 3 Traveling Energy Pulses)
+      const track = document.createElement('div');
+      track.className = 'exp-flow-track';
+      track.setAttribute('aria-hidden', 'true');
+
+      ['', 'pulse-2', 'pulse-3'].forEach((cls) => {
+        const pulse = document.createElement('span');
+        pulse.className = `exp-current-pulse ${cls}`.trim();
+        track.appendChild(pulse);
+      });
+      list.appendChild(track);
+
+      // 2. Render Setiap Node & Kartu Pengalaman Kerja
+      items.forEach((exp, idx) => {
+        const itemWrap = document.createElement('article');
+        itemWrap.className = 'exp-item';
+
+        // Node sirkuit di jalur utama
+        const nodeDot = document.createElement('span');
+        nodeDot.className = `exp-node-dot${exp.isCurrent ? ' is-current' : ''}`;
+        nodeDot.setAttribute('aria-hidden', 'true');
+
+        // Garis cabang arus horizontal ke kartu
+        const branch = document.createElement('span');
+        branch.className = 'exp-branch-line';
+        branch.setAttribute('aria-hidden', 'true');
+
+        // Kartu Pixel Pengalaman Kerja
+        const card = document.createElement('div');
+        card.className = `pixel-card p-4 transition hover:bg-rose-50/40 ${
+          exp.isCurrent ? 'border-rose-700 bg-white' : 'bg-white'
+        }`;
+
+        // Baris atas: Periode, Nomor Langkah & Badge Aktif
+        const metaRow = document.createElement('div');
+        metaRow.className = 'flex flex-wrap items-center justify-between gap-2';
+
+        const leftBadges = document.createElement('div');
+        leftBadges.className = 'flex flex-wrap items-center gap-1.5';
+
+        const stepBadge = document.createElement('span');
+        stepBadge.className = 'pixel-tag bg-slate-900 px-1.5 py-0.5 font-pixel text-[7px] text-sky-300';
+        stepBadge.textContent = `#${String(idx + 1).padStart(2, '0')}`;
+        leftBadges.appendChild(stepBadge);
+
+        const periodBadge = document.createElement('span');
+        periodBadge.className = 'pixel-tag bg-rose-100 px-2 py-0.5 font-pixel text-[8px] text-rose-900';
+        periodBadge.textContent = exp.period || '';
+        leftBadges.appendChild(periodBadge);
+
+        if (exp.isCurrent) {
+          const curBadge = document.createElement('span');
+          curBadge.className = 'pixel-tag inline-flex items-center gap-1.5 bg-emerald-100 px-2 py-0.5 font-pixel text-[7px] text-emerald-900';
+          const liveDot = document.createElement('span');
+          liveDot.className = 'exp-live-dot';
+          curBadge.append(liveDot, document.createTextNode('AKTIF'));
+          leftBadges.appendChild(curBadge);
+        }
+
+        metaRow.appendChild(leftBadges);
+
+        if (exp.location) {
+          const locSpan = document.createElement('span');
+          locSpan.className = 'font-vt text-base text-slate-500';
+          locSpan.textContent = `📍 ${exp.location}`;
+          metaRow.appendChild(locSpan);
+        }
+
+        // Judul Jabatan & Nama Instansi
+        const roleEl = document.createElement('h3');
+        roleEl.className = 'mt-2.5 text-sm font-bold text-slate-900 sm:text-base';
+        roleEl.textContent = exp.role || '';
+
+        const compEl = document.createElement('p');
+        compEl.className = 'text-xs font-bold text-rose-700';
+        compEl.textContent = exp.company || '';
+
+        // Deskripsi
+        const descEl = document.createElement('p');
+        descEl.className = 'mt-2 text-xs leading-relaxed text-slate-600';
+        descEl.textContent = exp.description || '';
+
+        card.append(metaRow, roleEl, compEl, descEl);
+
+        // Tags Keahlian
+        if (Array.isArray(exp.tags) && exp.tags.length > 0) {
+          const tagsWrap = document.createElement('div');
+          tagsWrap.className = 'mt-3 flex flex-wrap gap-1.5';
+          exp.tags.forEach((tag) => {
+            const sp = document.createElement('span');
+            sp.className = 'pixel-tag bg-slate-100 px-2 py-0.5 font-vt text-base leading-none text-slate-800';
+            sp.textContent = tag;
+            tagsWrap.appendChild(sp);
+          });
+          card.appendChild(tagsWrap);
+        }
+
+        itemWrap.append(nodeDot, branch, card);
+        list.appendChild(itemWrap);
+      });
+    }
+
     function renderAllPortfolioContent() {
       renderHeaderHUD();
       renderProfilDialog();
+      renderPengalamanDialog();
       renderProjectDialog();
       renderPortfolioCards(activePortfolioFilter);
       renderContactDialog();
@@ -1866,10 +2059,12 @@
         } else if (key === '1') {
           navigateToZone('profil', true);
         } else if (key === '2') {
-          navigateToZone('project', true);
+          navigateToZone('pengalaman', true);
         } else if (key === '3') {
-          navigateToZone('portofolio', true);
+          navigateToZone('project', true);
         } else if (key === '4') {
+          navigateToZone('portofolio', true);
+        } else if (key === '5') {
           navigateToZone('kontak', true);
         } else if (key === 'r') {
           resetPlayerPosition();

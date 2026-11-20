@@ -28,7 +28,7 @@
   </script>
 
   <!-- Custom Retro Pixel UI & Game Styles -->
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
 </head>
 <body>
 
@@ -59,11 +59,12 @@
         <span id="hud-zone-status" class="text-amber-300">JALUR UTAMA</span>
       </div>
       <div class="relative mt-1 h-3 w-64 border-2 border-slate-950 bg-slate-800">
-        <!-- Titik 4 Stasiun -->
-        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-sky-400" style="left: 20%" title="1. Profil"></span>
-        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-emerald-400" style="left: 42%" title="2. Project"></span>
-        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-indigo-400" style="left: 64%" title="3. Portofolio"></span>
-        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-amber-400" style="left: 86%" title="4. Kontak"></span>
+        <!-- Titik 5 Stasiun -->
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-sky-400" style="left: 16%" title="1. Profil"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-rose-400" style="left: 34%" title="2. Pengalaman Kerja"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-emerald-400" style="left: 52%" title="3. Project"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-indigo-400" style="left: 70%" title="4. Portofolio"></span>
+        <span class="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-amber-400" style="left: 88%" title="5. Kontak"></span>
         <!-- Indikator Posisi Player -->
         <span id="minimap-player-dot" class="absolute top-1/2 h-3.5 w-2.5 -translate-x-1/2 -translate-y-1/2 border border-slate-950 bg-white transition-all duration-75" style="left: 8%"></span>
       </div>
@@ -149,7 +150,7 @@
       </button>
     </div>
 
-    <!-- Baris 2: Navigasi Cepat 4 Stasiun (Berjejer Kiri ke Kanan) -->
+    <!-- Baris 2: Navigasi Cepat 5 Stasiun (Berjejer Kiri ke Kanan) -->
     <nav
       aria-label="Navigasi cepat stasiun portofolio"
       class="pixel-panel pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto p-1.5 sm:gap-1.5"
@@ -165,10 +166,19 @@
       <span class="font-vt text-slate-400">─</span>
       <button
         type="button"
+        data-zone-nav="pengalaman"
+        class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-rose-100 sm:text-[9px]"
+      >
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-rose-600 text-[8px] text-white">2</span>
+        <span>PENGALAMAN</span>
+      </button>
+      <span class="font-vt text-slate-400">─</span>
+      <button
+        type="button"
         data-zone-nav="project"
         class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-emerald-100 sm:text-[9px]"
       >
-        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-emerald-500 text-[8px] text-white">2</span>
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-emerald-500 text-[8px] text-white">3</span>
         <span>PROJECT</span>
       </button>
       <span class="font-vt text-slate-400">─</span>
@@ -177,7 +187,7 @@
         data-zone-nav="portofolio"
         class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-indigo-100 sm:text-[9px]"
       >
-        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-indigo-500 text-[8px] text-white">3</span>
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-indigo-500 text-[8px] text-white">4</span>
         <span>PORTOFOLIO</span>
       </button>
       <span class="font-vt text-slate-400">─</span>
@@ -186,7 +196,7 @@
         data-zone-nav="kontak"
         class="zone-nav-btn flex shrink-0 items-center gap-1.5 border-2 border-transparent px-2.5 py-1.5 font-pixel text-[8px] text-slate-800 transition hover:border-slate-900 hover:bg-amber-100 sm:text-[9px]"
       >
-        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-amber-500 text-[8px] text-slate-900">4</span>
+        <span class="inline-flex h-4 w-4 items-center justify-center border border-slate-900 bg-amber-500 text-[8px] text-slate-900">5</span>
         <span>KONTAK</span>
       </button>
     </nav>
@@ -229,7 +239,7 @@
         </li>
         <li class="flex items-center justify-between">
           <span>Stasiun / Siang-Malam</span>
-          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">1-4 / T</kbd>
+          <kbd class="border border-slate-900 bg-slate-200 px-1.5 font-pixel text-[7px]">1-5 / T</kbd>
         </li>
       </ul>
     </div>
@@ -301,11 +311,39 @@
     <div id="profil-dynamic-content" class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-5"></div>
   </dialog>
 
-  <!-- DIALOG ZONA 2: CONTOH PROJECT -->
+  <!-- DIALOG ZONA 2: PENGALAMAN KERJA (ALUR ARUS BERJALAN) -->
+  <dialog id="dialog-pengalaman" class="zone-dialog" aria-labelledby="title-pengalaman">
+    <div class="flex items-center justify-between border-b-4 border-slate-900 bg-rose-600 px-5 py-3.5 text-white">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-rose-700">02</span>
+        <div>
+          <h2 id="title-pengalaman" class="font-pixel text-xs sm:text-sm">PENGALAMAN KERJA</h2>
+          <p class="mt-0.5 font-vt text-lg leading-none text-rose-100">Menara Karier · Alur Perjalanan Profesional</p>
+        </div>
+      </div>
+      <button type="button" data-close-dialog class="pixel-btn px-2.5 py-1.5 font-pixel text-[10px]" aria-label="Tutup dialog pengalaman kerja">
+        X
+      </button>
+    </div>
+
+    <div class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-4">
+      <div class="pixel-card flex flex-wrap items-center justify-between gap-2 bg-slate-900 px-3.5 py-2.5 text-white">
+        <div class="flex items-center gap-2">
+          <span class="exp-live-dot"></span>
+          <span class="font-pixel text-[8px] text-sky-300">ALUR KARIER AKTIF · ARUS DATA BERJALAN</span>
+        </div>
+        <span class="font-vt text-base text-rose-300">Terbaru ▼ Awal Karier</span>
+      </div>
+
+      <div id="pengalaman-timeline-list" class="exp-timeline space-y-5 py-1"></div>
+    </div>
+  </dialog>
+
+  <!-- DIALOG ZONA 3: CONTOH PROJECT -->
   <dialog id="dialog-project" class="zone-dialog" aria-labelledby="title-project">
     <div class="flex items-center justify-between border-b-4 border-slate-900 bg-emerald-600 px-5 py-3.5 text-white">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-emerald-700">02</span>
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-emerald-700">03</span>
         <div>
           <h2 id="title-project" class="font-pixel text-xs sm:text-sm">CONTOH PROJECT</h2>
           <p class="mt-0.5 font-vt text-lg leading-none text-emerald-100">Server Rack &amp; Network Tower · Lingkungan Rumah Sakit</p>
@@ -319,11 +357,11 @@
     <div id="project-dynamic-list" class="dialog-scroll overflow-y-auto bg-slate-50 p-5 space-y-4"></div>
   </dialog>
 
-  <!-- DIALOG ZONA 3: PORTOFOLIO (DENGAN FILTER KATEGORI) -->
+  <!-- DIALOG ZONA 4: PORTOFOLIO (DENGAN FILTER KATEGORI) -->
   <dialog id="dialog-portofolio" class="zone-dialog" aria-labelledby="title-portofolio">
     <div class="flex items-center justify-between border-b-4 border-slate-900 bg-indigo-600 px-5 py-3.5 text-white">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-indigo-700">03</span>
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-indigo-700">04</span>
         <div>
           <h2 id="title-portofolio" class="font-pixel text-xs sm:text-sm">GALERI PORTOFOLIO</h2>
           <p class="mt-0.5 font-vt text-lg leading-none text-indigo-100">Galeri Showcase Arcade · Filter bidang keahlian</p>
@@ -351,11 +389,11 @@
     </div>
   </dialog>
 
-  <!-- DIALOG ZONA 4: KONTAK -->
+  <!-- DIALOG ZONA 5: KONTAK -->
   <dialog id="dialog-kontak" class="zone-dialog" aria-labelledby="title-kontak">
     <div class="flex items-center justify-between border-b-4 border-slate-900 bg-amber-500 px-5 py-3.5 text-slate-950">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-amber-700">04</span>
+        <span class="flex h-8 w-8 items-center justify-center border-2 border-slate-900 bg-white font-pixel text-[10px] text-amber-700">05</span>
         <div>
           <h2 id="title-kontak" class="font-pixel text-xs sm:text-sm">HUBUNGI ACHMAD FEBRI</h2>
           <p class="mt-0.5 font-vt text-lg leading-none text-amber-950">Menara Sinyal · Diskusi Proyek &amp; Kolaborasi IT</p>
@@ -525,8 +563,8 @@
     </div>
   </dialog>
 
-  <script src="js/cms-core.js?v=2"></script>
+  <script src="js/cms-core.js?v=3"></script>
   <!-- 2D Isometric Pixel Art Engine & Dynamic CMS Renderer -->
-  <script src="js/game.js?v=3"></script>
+  <script src="js/game.js?v=4"></script>
 </body>
 </html>
