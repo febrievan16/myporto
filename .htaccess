@@ -1,7 +1,16 @@
+# Entry point domain utama
+DirectoryIndex index.php portofolio_3d_isometric_achmad_febri.html index.html
+
 # Matikan directory listing
 Options -Indexes
 
-# Blokir akses langsung ke file tersembunyi (.htaccess, .git, .env, dll.)
+# Blokir akses langsung ke folder internal (.git, .agents)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\.(git|agents)(/|$) - [F,L]
+</IfModule>
+
+# Blokir akses langsung ke file tersembunyi (.htaccess, .gitignore, .env, dll.)
 <FilesMatch "^\.">
   <IfModule mod_authz_core.c>
     Require all denied

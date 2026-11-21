@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <rect width="32" height="32" fill="#0f172a"/>
+  <rect x="2" y="2" width="28" height="28" fill="#0284c7"/>
+  <rect x="2" y="2" width="28" height="3" fill="#38bdf8"/>
+  <rect x="2" y="2" width="3" height="28" fill="#38bdf8"/>
+  <rect x="27" y="5" width="3" height="25" fill="#0369a1"/>
+  <rect x="5" y="27" width="25" height="3" fill="#0369a1"/>
+  <!-- Huruf F -->
+  <rect x="7" y="9" width="7" height="2" fill="#ffffff"/>
+  <rect x="7" y="9" width="2" height="14" fill="#ffffff"/>
+  <rect x="7" y="15" width="6" height="2" fill="#ffffff"/>
+  <!-- Huruf E -->
+  <rect x="17" y="9" width="8" height="2" fill="#fde68a"/>
+  <rect x="17" y="9" width="2" height="14" fill="#fde68a"/>
+  <rect x="17" y="15" width="6" height="2" fill="#fde68a"/>
+  <rect x="17" y="21" width="8" height="2" fill="#fde68a"/>
+</svg>

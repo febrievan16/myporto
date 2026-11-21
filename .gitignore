@@ -1,0 +1,10 @@
+# File autentikasi, pesan pribadi & rate limit (jangan pernah di-push ke repo publik)
+data/auth.json
+data/messages.json
+data/rate_limit.json
+
+# Konfigurasi lokal agent & OS
+.agents/
+skills-lock.json
+.DS_Store
+Thumbs.db

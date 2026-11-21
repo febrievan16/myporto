@@ -9,10 +9,18 @@ declare(strict_types=1);
  * =============================================================================
  */
 
-// 1. Konfigurasi Keamanan Session sebelum session_start()
+// 1. Pengaturan Produksi PHP & Konfigurasi Keamanan Session sebelum session_start()
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+date_default_timezone_set('Asia/Jakarta');
+
+$forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+$cfVisitor      = (string) ($_SERVER['HTTP_CF_VISITOR'] ?? '');
 $isHttps = (
     (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ||
-    (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
+    (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) ||
+    $forwardedProto === 'https' ||
+    str_contains($cfVisitor, '"https"')
 );
 
 ini_set('session.use_strict_mode', '1');
