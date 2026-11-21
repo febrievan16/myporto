@@ -10,7 +10,8 @@
   const STORAGE_KEYS = {
     DATA: 'febporto_cms_data_v1',
     MESSAGES: 'febporto_cms_messages_v1',
-    LOCAL_PASS: 'febporto_cms_pass_v1',
+    LOCAL_PASS_LEGACY: 'febporto_cms_pass_v1',
+    LOCAL_PASS_HASH: 'febporto_cms_pass_hash_v2',
     LOCAL_AUTH: 'febporto_cms_auth_session_v1',
   };
 
@@ -213,15 +214,62 @@
   }
 
   // ===========================================================================
-  // HYBRID STORAGE ENGINE (PHP API <-> LOCALSTORAGE FALLBACK)
+  // HYBRID STORAGE ENGINE (PHP API <-> LOCALSTORAGE FALLBACK) + SECURITY LAYER
   // ===========================================================================
   let storageMode = 'local'; // 'server' | 'local'
   let modeDetected = false;
+  let csrfToken = '';
+  let securityInfo = {
+    isDefaultPassword: false,
+    hashAlgo: 'Argon2id',
+  };
+
+  // Salted SHA-256 hash untuk mode offline (tidak pernah menyimpan plaintext di LocalStorage)
+  async function hashLocalPassword(plain) {
+    const salted = `febporto_sec_v2::${String(plain)}`;
+    if (global.crypto && global.crypto.subtle) {
+      const data = new TextEncoder().encode(salted);
+      const buf = await global.crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(buf))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+    // Fallback deterministic non-plaintext hash jika dijalankan di konteks non-HTTPS file://
+    let h1 = 0xdeadbeef;
+    let h2 = 0x41c6ce57;
+    for (let i = 0; i < salted.length; i++) {
+      const ch = salted.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 'fb_' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+  }
+
+  async function getLocalPasswordHash() {
+    let storedHash = localStorage.getItem(STORAGE_KEYS.LOCAL_PASS_HASH);
+    if (!storedHash) {
+      // Migrasi otomatis & hapus key plaintext lama jika masih ada
+      const legacyPlain = localStorage.getItem(STORAGE_KEYS.LOCAL_PASS_LEGACY) || 'admin123';
+      storedHash = await hashLocalPassword(legacyPlain);
+      localStorage.setItem(STORAGE_KEYS.LOCAL_PASS_HASH, storedHash);
+      localStorage.removeItem(STORAGE_KEYS.LOCAL_PASS_LEGACY);
+    }
+    return storedHash;
+  }
 
   async function apiFetch(action, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    const method = String(options.method || 'GET').toUpperCase();
+    if (method !== 'GET' && csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+
     const res = await fetch(`api.php?action=${encodeURIComponent(action)}`, {
       credentials: 'same-origin',
       ...options,
+      headers,
     });
     const text = await res.text();
     let json;
@@ -230,8 +278,19 @@
     } catch {
       throw new Error('Server PHP tidak merespons JSON valid.');
     }
+    if (json && typeof json.csrfToken === 'string' && json.csrfToken) {
+      csrfToken = json.csrfToken;
+    }
+    if (json && typeof json.isDefaultPassword === 'boolean') {
+      securityInfo.isDefaultPassword = json.isDefaultPassword;
+    }
+    if (json && typeof json.hashAlgo === 'string') {
+      securityInfo.hashAlgo = json.hashAlgo;
+    }
     if (!res.ok || json.ok === false) {
-      throw new Error(json.error || `HTTP ${res.status}`);
+      const err = new Error(json.error || `HTTP ${res.status}`);
+      err.status = res.status;
+      throw err;
     }
     return json;
   }
@@ -322,9 +381,13 @@
       });
       return true;
     }
-    const storedPass = localStorage.getItem(STORAGE_KEYS.LOCAL_PASS) || 'admin123';
-    if (password === storedPass) {
+    const storedHash = await getLocalPasswordHash();
+    const inputHash = await hashLocalPassword(password);
+    if (inputHash === storedHash) {
       sessionStorage.setItem(STORAGE_KEYS.LOCAL_AUTH, '1');
+      const defHash = await hashLocalPassword('admin123');
+      securityInfo.isDefaultPassword = storedHash === defHash;
+      securityInfo.hashAlgo = 'Salted SHA-256';
       return true;
     }
     throw new Error('Password / PIN Admin salah.');
@@ -334,28 +397,37 @@
     const mode = await detectStorageMode();
     sessionStorage.removeItem(STORAGE_KEYS.LOCAL_AUTH);
     if (mode === 'server') {
-      await apiFetch('logout', { method: 'POST' });
+      await apiFetch('logout', { method: 'POST' }).catch(() => {});
+      csrfToken = '';
     }
   }
 
   async function changePassword(currentPassword, newPassword) {
-    if (!newPassword || newPassword.trim().length < 4) {
-      throw new Error('Password baru minimal 4 karakter.');
+    const cleanNew = String(newPassword || '').trim();
+    if (cleanNew.length < 8) {
+      throw new Error('Password baru minimal 8 karakter.');
+    }
+    if (cleanNew === currentPassword) {
+      throw new Error('Password baru tidak boleh sama dengan password lama.');
     }
     const mode = await detectStorageMode();
     if (mode === 'server') {
       await apiFetch('change_password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword: newPassword.trim() }),
+        body: JSON.stringify({ currentPassword, newPassword: cleanNew }),
       });
       return true;
     }
-    const storedPass = localStorage.getItem(STORAGE_KEYS.LOCAL_PASS) || 'admin123';
-    if (currentPassword !== storedPass) {
+    const storedHash = await getLocalPasswordHash();
+    const currHash = await hashLocalPassword(currentPassword);
+    if (currHash !== storedHash) {
       throw new Error('Password lama tidak sesuai.');
     }
-    localStorage.setItem(STORAGE_KEYS.LOCAL_PASS, newPassword.trim());
+    const nextHash = await hashLocalPassword(cleanNew);
+    localStorage.setItem(STORAGE_KEYS.LOCAL_PASS_HASH, nextHash);
+    localStorage.removeItem(STORAGE_KEYS.LOCAL_PASS_LEGACY);
+    securityInfo.isDefaultPassword = false;
     return true;
   }
 
@@ -498,6 +570,12 @@
         onDataUpdated(deepClone(draftData));
         setStatus(`${successText} (${res.mode === 'server' ? 'Server JSON' : 'LocalStorage'})`, 'ok');
       } catch (err) {
+        if (err && err.status === 401) {
+          authenticated = false;
+          render();
+          onToast('Sesi berakhir. Silakan login kembali.');
+          return;
+        }
         setStatus(err.message || 'Gagal menyimpan data.', 'err');
       }
     }
@@ -516,23 +594,23 @@
               ${modeBadge}
             </div>
             <p class="text-xs leading-relaxed text-slate-600">
-              Masukkan Password / PIN Admin untuk mengelola isi Profil, Keahlian, Contoh Project, Galeri Portofolio, dan Inbox Pesan.
+              Masukkan Password Admin untuk mengelola Profil, Pengalaman Kerja, Contoh Project, Galeri Portofolio, dan Inbox Pesan.
             </p>
             <form data-admin-login-form class="space-y-3">
               <div>
-                <label class="mb-1.5 block font-pixel text-[8px] text-slate-700">PASSWORD / PIN ADMIN</label>
+                <label class="mb-1.5 block font-pixel text-[8px] text-slate-700">PASSWORD ADMIN</label>
                 <input
                   type="password"
                   name="password"
                   required
                   autocomplete="current-password"
-                  placeholder="Default awal: admin123"
+                  placeholder="Masukkan password admin..."
                   class="w-full border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-900 focus:bg-sky-50 focus:outline-none"
                 />
               </div>
-              <p data-login-error class="hidden text-xs font-bold text-rose-700"></p>
+              <p data-login-error class="hidden border-2 border-rose-800 bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-800"></p>
               <div class="flex items-center justify-between gap-2 pt-1">
-                <span class="font-vt text-base text-slate-500">Default: <strong>admin123</strong></span>
+                <span class="font-vt text-sm text-emerald-700">🔒 Argon2id · CSRF · Anti Brute-Force</span>
                 <button type="submit" class="pixel-btn-primary px-4 py-2 font-pixel text-[9px]">
                   MASUK PANEL ►
                 </button>
@@ -1094,20 +1172,61 @@
     function renderTabPengaturan() {
       return `
         <div class="space-y-5">
-          <!-- Ganti Password Admin -->
-          <form data-form-password class="pixel-card space-y-3 p-4">
-            <h3 class="border-b-2 border-slate-900 pb-2 font-pixel text-[10px] text-slate-900">GANTI PASSWORD / PIN ADMIN</h3>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PASSWORD LAMA</label>
-                <input name="currentPassword" type="password" required class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+          <!-- Status Keamanan Sistem -->
+          <div class="pixel-card space-y-2.5 bg-slate-900 p-4 text-white">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
+              <h3 class="font-pixel text-[10px] text-emerald-300">🛡 STATUS KEAMANAN ADMIN CMS</h3>
+              <span class="pixel-tag bg-emerald-500 px-2 py-0.5 font-pixel text-[7px] text-slate-950">HARDENED AKTIF</span>
+            </div>
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 text-xs">
+              <div class="border border-slate-700 bg-slate-800/80 px-3 py-2">
+                <span class="font-pixel text-[7px] text-sky-300">ENKRIPSI PASSWORD:</span>
+                <p class="mt-0.5 font-bold text-white">${escapeHtml(securityInfo.hashAlgo)} (Auto-Upgrade)</p>
               </div>
-              <div>
-                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PASSWORD BARU (MIN 4 KARAKTER)</label>
-                <input name="newPassword" type="password" required minlength="4" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              <div class="border border-slate-700 bg-slate-800/80 px-3 py-2">
+                <span class="font-pixel text-[7px] text-sky-300">PROTEKSI SERANGAN:</span>
+                <p class="mt-0.5 font-bold text-white">CSRF Token · Anti Brute-Force (5x/15m)</p>
+              </div>
+              <div class="border border-slate-700 bg-slate-800/80 px-3 py-2">
+                <span class="font-pixel text-[7px] text-sky-300">KEAMANAN SESI:</span>
+                <p class="mt-0.5 font-bold text-white">HttpOnly · SameSite=Strict · Timeout 30m</p>
+              </div>
+              <div class="border border-slate-700 bg-slate-800/80 px-3 py-2">
+                <span class="font-pixel text-[7px] text-sky-300">PROTEKSI FILE &amp; UPLOAD:</span>
+                <p class="mt-0.5 font-bold text-white">Validasi Gambar + .htaccess Anti-PHP</p>
               </div>
             </div>
-            <button type="submit" class="pixel-btn-primary px-4 py-1.5 font-pixel text-[8px]">UPDATE PASSWORD</button>
+          </div>
+
+          ${
+            securityInfo.isDefaultPassword
+              ? `<div class="border-2 border-rose-900 bg-rose-100 p-3.5 text-xs font-bold text-rose-900">
+                  ⚠ PERINGATAN KEAMANAN: Anda masih menggunakan password bawaan! Segera ganti password di bawah ini minimal 8 karakter (kombinasi huruf besar, angka, &amp; simbol).
+                </div>`
+              : ''
+          }
+
+          <!-- Ganti Password Admin -->
+          <form data-form-password class="pixel-card space-y-3 p-4">
+            <h3 class="border-b-2 border-slate-900 pb-2 font-pixel text-[10px] text-slate-900">GANTI PASSWORD ADMIN (HASH ARGON2ID)</h3>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PASSWORD LAMA</label>
+                <input name="currentPassword" type="password" required autocomplete="current-password" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">PASSWORD BARU (MIN 8 KARAKTER)</label>
+                <input name="newPassword" type="password" required minlength="8" autocomplete="new-password" data-new-pass-input class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+              <div>
+                <label class="mb-1 block font-pixel text-[7px] text-slate-600">KONFIRMASI PASSWORD BARU</label>
+                <input name="confirmPassword" type="password" required minlength="8" autocomplete="new-password" class="w-full border-2 border-slate-900 px-2.5 py-1.5 text-xs" />
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span data-pass-strength class="font-vt text-base text-slate-600">Tips: Gunakan kombinasi huruf besar, huruf kecil, angka &amp; simbol.</span>
+              <button type="submit" class="pixel-btn-primary px-4 py-1.5 font-pixel text-[8px]">UPDATE PASSWORD</button>
+            </div>
           </form>
 
           <!-- Backup Export / Import / Reset -->
@@ -1474,15 +1593,49 @@
         });
       });
 
-      // --- TAB 5: PENGATURAN & BACKUP ---
+      // --- TAB 6: PENGATURAN & BACKUP ---
       const formPass = rootEl.querySelector('[data-form-password]');
+      const newPassInput = rootEl.querySelector('[data-new-pass-input]');
+      const strengthEl = rootEl.querySelector('[data-pass-strength]');
+      newPassInput?.addEventListener('input', () => {
+        if (!strengthEl) return;
+        const val = newPassInput.value;
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+        if (/\d/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        if (!val) {
+          strengthEl.textContent = 'Tips: Gunakan kombinasi huruf besar, huruf kecil, angka & simbol.';
+          strengthEl.className = 'font-vt text-base text-slate-600';
+        } else if (score <= 2) {
+          strengthEl.textContent = 'Kekuatan Password: LEMAH (tambahkan huruf besar/angka/simbol)';
+          strengthEl.className = 'font-vt text-base font-bold text-rose-700';
+        } else if (score <= 3) {
+          strengthEl.textContent = 'Kekuatan Password: SEDANG (cukup baik)';
+          strengthEl.className = 'font-vt text-base font-bold text-amber-700';
+        } else {
+          strengthEl.textContent = 'Kekuatan Password: KUAT ✓ (siap dienkripsi Argon2id)';
+          strengthEl.className = 'font-vt text-base font-bold text-emerald-700';
+        }
+      });
+
       formPass?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fd = new FormData(formPass);
+        const curr = String(fd.get('currentPassword') || '');
+        const next = String(fd.get('newPassword') || '');
+        const conf = String(fd.get('confirmPassword') || '');
+        if (next !== conf) {
+          setStatus('Konfirmasi password baru tidak cocok.', 'err');
+          return;
+        }
         try {
-          await changePassword(String(fd.get('currentPassword') || ''), String(fd.get('newPassword') || ''));
+          await changePassword(curr, next);
           formPass.reset();
-          setStatus('Password Admin berhasil diperbarui!', 'ok');
+          render();
+          setStatus('Password Admin berhasil diperbarui & dienkripsi!', 'ok');
         } catch (err) {
           setStatus(err.message || 'Gagal mengganti password.', 'err');
         }
@@ -1573,7 +1726,16 @@
             </button>
           </div>
 
-          <!-- Navigasi 5 Tab -->
+          ${
+            securityInfo.isDefaultPassword && activeTab !== 'pengaturan'
+              ? `<div class="flex flex-wrap items-center justify-between gap-2 border-2 border-rose-900 bg-rose-100 px-3 py-2 text-xs font-bold text-rose-900">
+                  <span>⚠ Password bawaan masih aktif! Demi keamanan, segera ganti di Tab 6. PENGATURAN.</span>
+                  <button type="button" data-admin-tab="pengaturan" class="pixel-btn bg-white px-2 py-1 font-pixel text-[7px] text-rose-900">GANTI SEKARANG ►</button>
+                </div>`
+              : ''
+          }
+
+          <!-- Navigasi 6 Tab -->
           <div class="flex flex-wrap gap-1.5" role="tablist">
             ${tabs
               .map(

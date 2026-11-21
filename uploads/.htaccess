@@ -1,0 +1,38 @@
+# Nonaktifkan directory listing & eksekusi skrip di folder uploads
+Options -Indexes -ExecCGI
+
+# Matikan engine PHP jika mod_php aktif
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+
+# Hapus handler skrip berbahaya
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh .asp .aspx .jsp
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
+
+# Izinkan hanya file gambar yang valid
+<FilesMatch "\.(?i:jpe?g|png|webp|gif)$">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "^(?!.*\.(?i:jpe?g|png|webp|gif)$).*$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
